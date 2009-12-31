@@ -15,7 +15,6 @@ spec = Gem::Specification.new do |s|
   s.homepage = ""
   s.add_dependency "redis"
   s.require_path = 'lib'
-  s.autorequire = 'redis_session_store'
   s.files = %w(README Rakefile) + Dir.glob("{lib}/**/*")
 end
 
