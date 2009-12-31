@@ -8,10 +8,15 @@ into a Redis version. No support for fancy stuff like distributed
 storage across several Redis instances. Feel free to add what you
 seem fit.
 
+This library doesn't offer anything related to caching, and is
+only suitable for Rails applications. For other frameworks or
+drop-in support for caching, check out
+[redis-store](http://github.com/jodosha/redis-store/)
+
 Installation
 ============
 
-gem install redis-session-store
+    gem install redis-session-store
 
 You know the rest.
 
