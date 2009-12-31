@@ -18,9 +18,20 @@ Installation
 
     gem install redis-session-store
 
-You know the rest.
-
 Configuration
 =============
 
 See lib/redis-session-store.rb for a list of valid options.
+Set them using:
+
+    ActionController::Base.session = {
+      :db => 2,
+      :expire_after => 120.minutes,
+      :key_prefix => "myapp:session:"
+    }
+    
+
+In your Rails app, throw in an initializer with the following contents
+and the configuration above:
+
+    ActionController::Base.session_store = RedisSessionStore
