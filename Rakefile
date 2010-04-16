@@ -4,7 +4,7 @@ require 'rubygems/specification'
 
 spec = Gem::Specification.new do |s|
   s.name = 'redis-session-store'
-  s.version = '0.1.4'
+  s.version = '0.1.6'
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
   s.extra_rdoc_files = ["LICENSE"]
@@ -12,7 +12,7 @@ spec = Gem::Specification.new do |s|
   s.description = s.summary
   s.authors = "Mathias Meyer"
   s.email = "meyer@paperplanes.de"
-  s.homepage = ""
+  s.homepage = "http://github.com/mattmatt/redis-session-store"
   s.add_dependency "redis"
   s.require_path = 'lib'
   s.files = %w(README.md Rakefile) + Dir.glob("{lib}/**/*")
