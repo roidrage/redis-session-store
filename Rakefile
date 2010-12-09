@@ -4,7 +4,7 @@ require 'rubygems/specification'
 
 spec = Gem::Specification.new do |s|
   s.name = 'redis-session-store'
-  s.version = '0.1.6'
+  s.version = '0.1.7'
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
   s.extra_rdoc_files = ["LICENSE"]
