@@ -18,8 +18,6 @@ class RedisSessionStore < ActionController::Session::AbstractStore
     # Support old :expires option
     options[:expire_after] ||= options[:expires]
 
-    super
-
     @default_options = {
       :namespace => 'rack:session',
       :host => 'localhost',
@@ -29,6 +27,9 @@ class RedisSessionStore < ActionController::Session::AbstractStore
     }.update(options)
 
     @redis = Redis.new(@default_options)
+
+    super
+    
   end
 
   private
