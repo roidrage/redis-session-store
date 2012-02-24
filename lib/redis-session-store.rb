@@ -15,18 +15,11 @@ require 'redis'
 class RedisSessionStore < ActionController::Session::AbstractStore
 
   def initialize(app, options = {})
-    # Support old :expires option
-    options[:expire_after] ||= options[:expires]
-
     super
 
     @default_options = {
-      :namespace => 'rack:session',
-      :host => 'localhost',
-      :port => '6379',
-      :db => 0,
-      :key_prefix => ""
-    }.update(options)
+      :namespace => 'rack:session'
+    }.merge(options)
 
     @redis = Redis.new(@default_options)
   end
@@ -35,7 +28,7 @@ class RedisSessionStore < ActionController::Session::AbstractStore
     def prefixed(sid)
       "#{@default_options[:key_prefix]}#{sid}"
     end
-    
+
     def get_session(env, sid)
       sid ||= generate_sid
       begin
@@ -50,15 +43,17 @@ class RedisSessionStore < ActionController::Session::AbstractStore
     def set_session(env, sid, session_data)
       options = env['rack.session.options']
       expiry  = options[:expire_after] || nil
-      
+
       @redis.pipelined do
-        @redis.set(prefixed(sid), Marshal.dump(session_data))
-        @redis.expire(prefixed(sid), expiry) if expiry
+        if expiry
+          @redis.setex(prefixed(sid), expiry, Marshal.dump(session_data))
+        else
+          @redis.set(prefixed(sid), Marshal.dump(session_data))
+        end
       end
-        
+
       return true
     rescue Errno::ECONNREFUSED
       return false
     end
-  
 end
