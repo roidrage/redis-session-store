@@ -15,18 +15,11 @@ require 'redis'
 class RedisSessionStore < ActionController::Session::AbstractStore
 
   def initialize(app, options = {})
-    # Support old :expires option
-    options[:expire_after] ||= options[:expires]
-
     super
 
     @default_options = {
-      :namespace => 'rack:session',
-      :host => 'localhost',
-      :port => '6379',
-      :db => 0,
-      :key_prefix => ""
-    }.update(options)
+      :namespace => 'rack:session'
+    }.merge(options)
 
     @redis = Redis.new(@default_options)
   end
