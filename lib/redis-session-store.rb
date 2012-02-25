@@ -43,12 +43,10 @@ class RedisSessionStore < ActionController::Session::AbstractStore
     def set_session(env, sid, session_data)
       options = env['rack.session.options']
       expiry  = options[:expire_after] || nil
-      @redis.pipelined do
-        if expiry
-          @redis.setex(prefixed(sid), expiry, Marshal.dump(session_data))
-        else
-          @redis.set(prefixed(sid), Marshal.dump(session_data))
-        end
+      if expiry
+        @redis.setex(prefixed(sid), expiry, Marshal.dump(session_data))
+      else
+        @redis.set(prefixed(sid), Marshal.dump(session_data))
       end
       return true
     rescue Errno::ECONNREFUSED
