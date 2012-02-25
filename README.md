@@ -35,3 +35,8 @@ In your Rails app, throw in an initializer with the following contents
 and the configuration above:
 
     ActionController::Base.session_store = RedisSessionStore
+
+Changes
+=======
+
+* Use setex for a single command instead of sending two commands. (Thanks dplummer)
