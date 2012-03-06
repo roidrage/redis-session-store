@@ -14,7 +14,7 @@ Gem::Specification.new do |gem|
   gem.files         = %w(README.md Rakefile) + ['lib/redis-session-store.rb']
   gem.name          = "redis-session-store"
   gem.require_paths = ["lib"]
-  gem.version       = '0.1.7'
+  gem.version       = '0.1.9'
 
   gem.add_dependency "redis"
 end
