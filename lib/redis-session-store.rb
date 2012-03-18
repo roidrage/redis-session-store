@@ -17,11 +17,11 @@ class RedisSessionStore < ActionController::Session::AbstractStore
   def initialize(app, options = {})
     super
 
-    @default_options = {
-      :namespace => 'rack:session'
-    }.merge(options)
+    redis_options = {}
+    @default_options.merge!(:namespace => 'rack:session')
+    @default_options.merge!(options[:redis]) if options[:redis]
 
-    @redis = Redis.new(@default_options)
+    @redis = Redis.new(redis_options)
   end
 
   private
@@ -33,7 +33,7 @@ class RedisSessionStore < ActionController::Session::AbstractStore
       sid ||= generate_sid
       begin
         data = @redis.get(prefixed(sid))
-        session = data.nil? ? {} : Marshal.load(data)
+        session = data.nil? ? {} : Marshal.load(ActiveSupport::Base64.decode64(data))
       rescue Errno::ECONNREFUSED
         session = {}
       end
@@ -44,9 +44,9 @@ class RedisSessionStore < ActionController::Session::AbstractStore
       options = env['rack.session.options']
       expiry  = options[:expire_after] || nil
       if expiry
-        @redis.setex(prefixed(sid), expiry, Marshal.dump(session_data))
+        @redis.setex(prefixed(sid), expiry, ActiveSupport::Base64.encode64(Marshal.dump(session_data))) if session_data
       else
-        @redis.set(prefixed(sid), Marshal.dump(session_data))
+        @redis.set(prefixed(sid), ActiveSupport::Base64.encode64(Marshal.dump(session_data))) if session_data
       end
       return true
     rescue Errno::ECONNREFUSED

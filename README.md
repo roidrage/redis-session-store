@@ -25,9 +25,13 @@ See lib/redis-session-store.rb for a list of valid options.
 Set them using:
 
     ActionController::Base.session = {
-      :db => 2,
-      :expire_after => 120.minutes,
-      :key_prefix => "myapp:session:"
+      :key          => 'your_session_key',
+      :secret       => 'your_long_secret',
+      :redis        => {
+        :db => 2,
+        :expire_after => 120.minutes,
+        :key_prefix => "myapp:session:"
+      }
     }
     
 
