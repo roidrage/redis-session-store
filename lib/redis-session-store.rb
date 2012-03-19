@@ -17,11 +17,11 @@ class RedisSessionStore < ActionController::Session::AbstractStore
   def initialize(app, options = {})
     super
 
-    @default_options = {
-      :namespace => 'rack:session'
-    }.merge(options)
+    redis_options = {}
+    @default_options.merge!(:namespace => 'rack:session')
+    @default_options.merge!(options[:redis]) if options[:redis]
 
-    @redis = Redis.new(@default_options)
+    @redis = Redis.new(redis_options)
   end
 
   private
@@ -51,5 +51,11 @@ class RedisSessionStore < ActionController::Session::AbstractStore
       return true
     rescue Errno::ECONNREFUSED
       return false
+    end
+
+    def destroy(env)
+      @redis.del prefixed(env['rack.request.cookie_hash'][@key])
+    rescue Errno::ECONNREFUSED
+      Rails.logger.warn("RedisSessionStore#destroy: Connection to redis refused")
     end
 end
