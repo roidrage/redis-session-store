@@ -6,21 +6,22 @@ require 'redis'
 # Options:
 #  :key     => Same as with the other cookie stores, key name
 #  :secret  => Encryption secret for the key
-#  :host    => Redis host name, default is localhost
-#  :port    => Redis port, default is 6379
-#  :db      => Database number, defaults to 0. Useful to separate your session storage from other data
-#  :key_prefix  => Prefix for keys used in Redis, e.g. myapp-. Useful to separate session storage keys visibly from others
-#  :expire_after => A number in seconds to set the timeout interval for the session. Will map directly to expiry in Redis
-
+#  :redis => {
+#    :host    => Redis host name, default is localhost
+#    :port    => Redis port, default is 6379
+#    :db      => Database number, defaults to 0. Useful to separate your session storage from other data
+#    :key_prefix  => Prefix for keys used in Redis, e.g. myapp-. Useful to separate session storage keys visibly from others
+#    :expire_after => A number in seconds to set the timeout interval for the session. Will map directly to expiry in Redis
+#  }
 class RedisSessionStore < ActionController::Session::AbstractStore
 
   def initialize(app, options = {})
     super
 
-    redis_options = {}
-    @default_options.merge!(:namespace => 'rack:session')
-    @default_options.merge!(options[:redis]) if options[:redis]
+    redis_options = options[:redis] || {}
 
+    @default_options.merge!(:namespace => 'rack:session')
+    @default_options.merge!(redis_options)
     @redis = Redis.new(redis_options)
   end
 
