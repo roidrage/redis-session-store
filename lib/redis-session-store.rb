@@ -55,7 +55,9 @@ class RedisSessionStore < ActionController::Session::AbstractStore
     end
 
     def destroy(env)
-      @redis.del prefixed(env['rack.request.cookie_hash'][@key])
+      if env['rack.request.cookie_hash'] && env['rack.request.cookie_hash'][@key]
+        @redis.del( prefixed(env['rack.request.cookie_hash'][@key]) )
+      end
     rescue Errno::ECONNREFUSED
       Rails.logger.warn("RedisSessionStore#destroy: Connection to redis refused")
     end
