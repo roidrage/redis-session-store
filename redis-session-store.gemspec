@@ -1,20 +1,30 @@
-# -*- encoding: utf-8 -*-
+# vim:fileencoding=utf-8
 
 Gem::Specification.new do |gem|
-
-  gem.authors       = ["Mathias Meyer"]
-  gem.email         = ["meyer@paperplanes.de"]
-  gem.summary       = "A drop-in replacement for e.g. MemCacheStore to store Rails sessions (and Rails sessions only) in Redis."
-  gem.description   = gem.summary
-  gem.homepage      = "http://github.com/mattmatt/redis-session-store"
+  gem.authors      = ['Mathias Meyer']
+  gem.email        = ['meyer@paperplanes.de']
+  gem.summary      = 'A drop-in replacement for e.g. MemCacheStore to store Rails sessions (and Rails sessions only) in Redis.'
+  gem.description  = gem.summary
+  gem.homepage     = 'https://github.com/roidrage/redis-session-store'
 
   gem.has_rdoc         = true
-  gem.extra_rdoc_files = ["LICENSE"]
+  gem.extra_rdoc_files = %w(LICENSE AUTHORS.md CONTRIBUTING.md)
 
-  gem.files         = %w(README.md Rakefile) + ['lib/redis-session-store.rb']
-  gem.name          = "redis-session-store"
-  gem.require_paths = ["lib"]
-  gem.version       = '0.1.7'
+  gem.files = %w(
+    AUTHORS.md
+    CONTRIBUTING.md
+    Gemfile
+    LICENSE
+    README.md
+    Rakefile
+    lib/redis-session-store.rb
+    test/fake_action_controller_session_abstract_store.rb
+    test/redis_session_store_test.rb
+  )
 
-  gem.add_dependency "redis"
+  gem.name          = 'redis-session-store'
+  gem.require_paths = ['lib']
+  gem.version       = '0.2.0'
+
+  gem.add_dependency 'redis'
 end
