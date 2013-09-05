@@ -1,5 +1,5 @@
-`redis-session-store` authors
-=============================
+Redis Session Store authors
+===========================
 
 - Ben Marini
 - Dan Buch

@@ -1,3 +1,6 @@
+Redis Session Store
+===================
+
 A simple Redis-based session store for Redis. But why, you ask,
 when there's [redis-store](http://github.com/jodosha/redis-store/)?
 redis-store is a one-fits-all solution, and I found it not to work
@@ -14,14 +17,14 @@ drop-in support for caching, check out
 [redis-store](http://github.com/jodosha/redis-store/)
 
 Installation
-============
+------------
 
 ``` bash
 gem install redis-session-store
 ```
 
 Configuration
-=============
+-------------
 
 See `lib/redis-session-store.rb` for a list of valid options.
 Set them using:
@@ -47,7 +50,7 @@ ActionController::Base.session_store = RedisSessionStore
 ```
 
 Contributing, Authors, & License
-================================
+--------------------------------
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [AUTHORS.md](AUTHORS.md), and
 [LICENSE](LICENSE), respectively.
