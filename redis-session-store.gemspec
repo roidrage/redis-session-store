@@ -6,6 +6,7 @@ Gem::Specification.new do |gem|
   gem.summary      = 'A drop-in replacement for e.g. MemCacheStore to store Rails sessions (and Rails sessions only) in Redis.'
   gem.description  = gem.summary
   gem.homepage     = 'https://github.com/roidrage/redis-session-store'
+  gem.license      = 'MIT'
 
   gem.has_rdoc         = true
   gem.extra_rdoc_files = %w(LICENSE AUTHORS.md CONTRIBUTING.md)
@@ -24,7 +25,7 @@ Gem::Specification.new do |gem|
 
   gem.name          = 'redis-session-store'
   gem.require_paths = ['lib']
-  gem.version       = '0.2.0'
+  gem.version       = '0.2.1'
 
   gem.add_dependency 'redis'
 end
