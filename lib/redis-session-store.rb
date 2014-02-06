@@ -47,7 +47,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
       else
         @redis.set(prefixed(sid), Marshal.dump(session_data))
       end
-      return true
+      return sid
     rescue Errno::ECONNREFUSED
       return false
     end
