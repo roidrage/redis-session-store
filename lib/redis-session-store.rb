@@ -13,7 +13,7 @@ require 'redis'
 #    :key_prefix  => Prefix for keys used in Redis, e.g. myapp-. Useful to separate session storage keys visibly from others
 #    :expire_after => A number in seconds to set the timeout interval for the session. Will map directly to expiry in Redis
 #  }
-class RedisSessionStore < ActionController::Session::AbstractStore
+class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def initialize(app, options = {})
     super
@@ -41,8 +41,7 @@ class RedisSessionStore < ActionController::Session::AbstractStore
       [sid, session]
     end
 
-    def set_session(env, sid, session_data)
-      options = env['rack.session.options']
+    def set_session(env, sid, session_data, options)
       expiry  = options[:expire_after] || nil
       if expiry
         @redis.setex(prefixed(sid), expiry, Marshal.dump(session_data))

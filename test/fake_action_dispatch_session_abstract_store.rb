@@ -1,5 +1,5 @@
-unless defined?(ActionController::Session::AbstractStore)
-  module ActionController
+unless defined?(ActionDispatch::Session::AbstractStore)
+  module ActionDispatch
     module Session
       class AbstractStore
         def initialize(app, options = {})

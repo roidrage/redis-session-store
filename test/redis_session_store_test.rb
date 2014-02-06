@@ -1,5 +1,5 @@
 require 'minitest/autorun'
-require File.expand_path('../fake_action_controller_session_abstract_store', __FILE__)
+require File.expand_path('../fake_action_dispatch_session_abstract_store', __FILE__)
 require 'redis-session-store'
 
 describe RedisSessionStore do
