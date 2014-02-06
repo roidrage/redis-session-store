@@ -27,10 +27,10 @@ Configuration
 -------------
 
 See `lib/redis-session-store.rb` for a list of valid options.
-Set them using:
+In your Rails app, throw in an initializer with the following contents:
 
 ``` ruby
-ActionController::Base.session = {
+My::Application.config.session_store = :redis_session_store, {
   :key          => 'your_session_key',
   :secret       => 'your_long_secret',
   :redis        => {
@@ -41,13 +41,6 @@ ActionController::Base.session = {
 }
 ```
     
-
-In your Rails app, throw in an initializer with the following contents
-and the configuration above:
-
-``` ruby
-ActionController::Base.session_store = RedisSessionStore
-```
 
 Contributing, Authors, & License
 --------------------------------
