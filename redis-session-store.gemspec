@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
     README.md
     Rakefile
     lib/redis-session-store.rb
-    test/fake_action_controller_session_abstract_store.rb
+    test/fake_action_dispatch_session_abstract_store.rb
     test/redis_session_store_test.rb
   )
 
