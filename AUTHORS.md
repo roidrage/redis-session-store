@@ -6,6 +6,7 @@ Redis Session Store authors
 - Donald Plummer
 - Edwin Cruz
 - Gonçalo Silva
+- Ian C. Anderson
 - Jorge Pardiñas
 - Mathias Meyer
 - Michael Fields
