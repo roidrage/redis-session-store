@@ -125,4 +125,21 @@ describe RedisSessionStore do
     end
 
   end
+
+  describe 'fetching a session' do
+    let :options do
+      {
+        key_prefix: 'customprefix::'
+      }
+    end
+
+    it 'should retrieve the prefixed key from redis' do
+      redis = double('redis')
+      fake_key = 'thisisarediskey'
+      store.stub(redis: redis)
+      expect(redis).to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
+
+      store.send(:get_session, double('env'), fake_key)
+    end
+  end
 end

@@ -21,6 +21,7 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'redis'
 
+  gem.add_development_dependency 'fakeredis'
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'rubocop'
