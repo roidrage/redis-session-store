@@ -132,14 +132,23 @@ describe RedisSessionStore do
         key_prefix: 'customprefix::'
       }
     end
+    let(:fake_key) { 'thisisarediskey' }
 
     it 'should retrieve the prefixed key from redis' do
       redis = double('redis')
-      fake_key = 'thisisarediskey'
       store.stub(redis: redis)
       expect(redis).to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
 
       store.send(:get_session, double('env'), fake_key)
+    end
+
+    context 'when redis is down' do
+
+      it 'should return an empty session hash' do
+        store.stub(:redis).and_raise(Errno::ECONNREFUSED)
+
+        expect(store.send(:get_session, double('env'), fake_key)).to eq([fake_key, {}])
+      end
     end
   end
 
