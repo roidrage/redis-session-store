@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'redis'
 
 # Redis session storage for Rails, and for Rails only. Derived from

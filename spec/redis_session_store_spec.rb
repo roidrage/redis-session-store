@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 describe RedisSessionStore do
   let :random_string do
     "#{rand}#{rand}#{rand}"

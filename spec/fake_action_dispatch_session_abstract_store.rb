@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 unless defined?(ActionDispatch::Session::AbstractStore)
   module ActionDispatch
     module Session
