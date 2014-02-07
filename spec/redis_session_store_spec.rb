@@ -96,4 +96,33 @@ describe RedisSessionStore do
       default_options[:expire_after].should == 60 * 60
     end
   end
+
+  describe 'rack 1.45 compatibility' do
+    # Rack 1.45 (which Rails 3.2.x depends on) uses the return value of set_session to set the cookie value
+    # See https://github.com/rack/rack/blob/1.4.5/lib/rack/session/abstract/id.rb
+
+    let(:env)          { double('env') }
+    let(:session_id)   { 12_345 }
+    let(:session_data) { double('session_data') }
+    let(:options)      { { expire_after: 123 } }
+
+    context 'when successfully persisting the session' do
+
+      it 'returns the session id' do
+        store.send(:set_session, env, session_id, session_data, options).should eq(session_id)
+      end
+
+    end
+
+    context 'when unsuccessfully persisting the session' do
+      before do
+        store.stub(:redis).and_raise(Errno::ECONNREFUSED)
+      end
+
+      it 'returns false' do
+        store.send(:set_session, env, session_id, session_data, options).should eq(false)
+      end
+    end
+
+  end
 end
