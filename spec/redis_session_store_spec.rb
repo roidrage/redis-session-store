@@ -142,4 +142,26 @@ describe RedisSessionStore do
       store.send(:get_session, double('env'), fake_key)
     end
   end
+
+  describe 'destroying a session' do
+    context 'when the key is in the cookie hash' do
+      let(:env) { { 'rack.request.cookie_hash' => cookie_hash } }
+      let(:cookie_hash) { double('cookie hash') }
+      let(:fake_key) { 'thisisarediskey' }
+
+      before do
+        cookie_hash.stub(:[] => fake_key)
+      end
+
+      it 'should delete the prefixed key from redis' do
+        redis = double('redis')
+        store.stub(redis: redis)
+        expect(redis).to receive(:del).with("#{options[:key_prefix]}#{fake_key}")
+
+        store.send(:destroy, env)
+      end
+
+    end
+
+  end
 end
