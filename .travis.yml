@@ -1,8 +1,18 @@
 ---
 language: ruby
 rvm:
-- ree
 - 1.9.3
 - 2.0.0
+- 2.1.0
 notifications:
   email: false
+deploy:
+  provider: rubygems
+  api_key:
+    secure: jL1lH/wfeRa5MoZRHvkXcZP/Ch7huFxqzbvhEV7UZhiDUBnApcJWkb346jeLEDYnFObUhqhaCZ1/l4fDeSFg2GgatSfEnoWATFVkIf1e4TTGAePlS+4qqsGOcr+XrjP6CEf4o4JACdLuSoT9dtUFj0xkFLnDWILxneXIrqDE9VU=
+  gem: redis-session-store
+  on:
+    tags: true
+    repo: roidrage/redis-session-store
+    branch: master
+    rvm: 2.0.0
