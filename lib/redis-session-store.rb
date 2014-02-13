@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'redis'
 
 # Redis session storage for Rails, and for Rails only. Derived from
@@ -13,50 +14,58 @@ require 'redis'
 #    :expire_after => A number in seconds to set the timeout interval for the session. Will map directly to expiry in Redis
 #  }
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
+  VERSION = '0.3.0'
 
   def initialize(app, options = {})
     super
 
     redis_options = options[:redis] || {}
 
-    @default_options.merge!(:namespace => 'rack:session')
+    @default_options.merge!(namespace: 'rack:session')
     @default_options.merge!(redis_options)
     @redis = Redis.new(redis_options)
   end
 
   private
-    def prefixed(sid)
-      "#{@default_options[:key_prefix]}#{sid}"
-    end
 
-    def get_session(env, sid)
-      sid ||= generate_sid
-      begin
-        data = @redis.get(prefixed(sid))
-        session = data.nil? ? {} : Marshal.load(data)
-      rescue Errno::ECONNREFUSED
-        session = {}
-      end
-      [sid, session]
-    end
+  attr_reader :redis, :key, :default_options
 
-    def set_session(env, sid, session_data, options)
-      expiry  = options[:expire_after] || nil
-      if expiry
-        @redis.setex(prefixed(sid), expiry, Marshal.dump(session_data))
-      else
-        @redis.set(prefixed(sid), Marshal.dump(session_data))
-      end
-      return sid
+  def prefixed(sid)
+    "#{default_options[:key_prefix]}#{sid}"
+  end
+
+  def get_session(env, sid)
+    sid ||= generate_sid
+    begin
+      data = redis.get(prefixed(sid))
+      session = data.nil? ? {} : Marshal.load(data)
     rescue Errno::ECONNREFUSED
-      return false
+      session = {}
     end
+    [sid, session]
+  end
 
-    def destroy(env)
-      if env['rack.request.cookie_hash'] && env['rack.request.cookie_hash'][@key]
-        @redis.del( prefixed(env['rack.request.cookie_hash'][@key]) )
-      end
-    rescue Errno::ECONNREFUSED
-      Rails.logger.warn("RedisSessionStore#destroy: Connection to redis refused")
+  def set_session(env, sid, session_data, options)
+    expiry  = options[:expire_after] || nil
+    if expiry
+      redis.setex(prefixed(sid), expiry, Marshal.dump(session_data))
+    else
+      redis.set(prefixed(sid), Marshal.dump(session_data))
     end
+    return sid
+  rescue Errno::ECONNREFUSED
+    return false
+  end
+
+  def destroy(env)
+    if env['rack.request.cookie_hash'] && env['rack.request.cookie_hash'][key]
+      redis.del(prefixed(env['rack.request.cookie_hash'][key]))
+    end
+  rescue Errno::ECONNREFUSED
+    if defined?(Rails)
+      Rails.logger.warn('RedisSessionStore#destroy: Connection to redis refused')
+    else
+      warn('RedisSessionStore#destroy: Connection to redis refused')
+    end
+  end
 end

@@ -1,11 +1,15 @@
-#!/usr/bin/env rake
 require 'bundler/gem_tasks'
-require 'rake/testtask'
+require 'rspec/core/rake_task'
+require 'rubocop/rake_task'
 
-task :default => :test
+task default: [:rubocop, :coverage]
 
-Rake::TestTask.new do |t|
-  t.pattern = 'test/*_test.rb'
-  t.verbose = true
-  t.options = '-v'
+RSpec::Core::RakeTask.new
+
+desc 'Run specs with coverage'
+task :coverage do
+  ENV['COVERAGE'] = '1'
+  Rake::Task['spec'].invoke
 end
+
+Rubocop::RakeTask.new
