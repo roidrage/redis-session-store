@@ -56,6 +56,11 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   rescue Errno::ECONNREFUSED
     return false
   end
+  
+  def destroy_session(env, sid, options)
+    redis.del(prefixed(sid))
+    generate_sid
+  end
 
   def destroy(env)
     if env['rack.request.cookie_hash'] && env['rack.request.cookie_hash'][key]
