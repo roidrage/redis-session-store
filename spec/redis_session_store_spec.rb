@@ -98,8 +98,9 @@ describe RedisSessionStore do
   end
 
   describe 'rack 1.45 compatibility' do
-    # Rack 1.45 (which Rails 3.2.x depends on) uses the return value of set_session to set the cookie value
-    # See https://github.com/rack/rack/blob/1.4.5/lib/rack/session/abstract/id.rb
+    # Rack 1.45 (which Rails 3.2.x depends on) uses the return value of
+    # set_session to set the cookie value.  See:
+    # https://github.com/rack/rack/blob/1.4.5/lib/rack/session/abstract/id.rb
 
     let(:env)          { double('env') }
     let(:session_id)   { 12_345 }
@@ -109,7 +110,8 @@ describe RedisSessionStore do
     context 'when successfully persisting the session' do
 
       it 'returns the session id' do
-        store.send(:set_session, env, session_id, session_data, options).should eq(session_id)
+        store.send(:set_session, env, session_id, session_data, options)
+          .should eq(session_id)
       end
 
     end
@@ -120,7 +122,8 @@ describe RedisSessionStore do
       end
 
       it 'returns false' do
-        store.send(:set_session, env, session_id, session_data, options).should eq(false)
+        store.send(:set_session, env, session_id, session_data, options)
+          .should eq(false)
       end
     end
 
@@ -147,7 +150,8 @@ describe RedisSessionStore do
       it 'should return an empty session hash' do
         store.stub(:redis).and_raise(Errno::ECONNREFUSED)
 
-        expect(store.send(:get_session, double('env'), fake_key)).to eq([fake_key, {}])
+        expect(store.send(:get_session, double('env'), fake_key))
+          .to eq([fake_key, {}])
       end
     end
   end
@@ -165,7 +169,8 @@ describe RedisSessionStore do
       it 'should delete the prefixed key from redis' do
         redis = double('redis')
         store.stub(redis: redis)
-        expect(redis).to receive(:del).with("#{options[:key_prefix]}#{fake_key}")
+        expect(redis).to receive(:del)
+          .with("#{options[:key_prefix]}#{fake_key}")
 
         store.send(:destroy, env)
       end
