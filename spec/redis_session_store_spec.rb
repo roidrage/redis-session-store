@@ -162,15 +162,24 @@ describe RedisSessionStore do
         cookie_hash.stub(:[] => fake_key)
       end
 
-      it 'should delete the prefixed key from redis' do
+      it 'deletes the prefixed key from redis' do
         redis = double('redis')
         store.stub(redis: redis)
         expect(redis).to receive(:del).with("#{options[:key_prefix]}#{fake_key}")
 
         store.send(:destroy, env)
       end
-
     end
 
+    context 'when destroyed via #destroy_session' do
+      it 'deletes the prefixed key from redis' do
+        redis = double('redis')
+        sid = store.send(:generate_sid)
+        store.stub(redis: redis)
+        expect(redis).to receive(:del).with("#{options[:key_prefix]}#{sid}")
+
+        store.send(:destroy_session, {}, sid, nil)
+      end
+    end
   end
 end

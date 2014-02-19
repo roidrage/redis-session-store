@@ -56,7 +56,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   rescue Errno::ECONNREFUSED
     return false
   end
-  
+
   def destroy_session(env, sid, options)
     redis.del(prefixed(sid))
     generate_sid

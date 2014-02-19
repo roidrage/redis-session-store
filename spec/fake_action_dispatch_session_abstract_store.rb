@@ -18,6 +18,12 @@ unless defined?(ActionDispatch::Session::AbstractStore)
           @key = @default_options[:key]
           @cookie_only = @default_options[:cookie_only]
         end
+
+        private
+
+        def generate_sid
+          rand(999..9999).to_s(16)
+        end
       end
     end
   end
