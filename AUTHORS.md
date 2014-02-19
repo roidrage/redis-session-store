@@ -8,6 +8,7 @@ Redis Session Store authors
 - Gonçalo Silva
 - Ian C. Anderson
 - Jorge Pardiñas
+- Justin McNally
 - Mathias Meyer
 - Michael Fields
 - Tim Lossen
