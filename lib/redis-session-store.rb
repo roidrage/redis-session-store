@@ -57,7 +57,8 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     [sid, session]
   end
 
-  def set_session(env, sid, session_data, options)
+  def set_session(env, sid, session_data, options = nil)
+    options ||= env[ENV_SESSION_OPTIONS_KEY]
     expiry  = options[:expire_after] || nil
     if expiry
       redis.setex(prefixed(sid), expiry, Marshal.dump(session_data))
@@ -71,6 +72,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def destroy_session(env, sid, options)
     redis.del(prefixed(sid))
+    return nil if (options || {})[:drop]
     generate_sid
   end
 
@@ -78,12 +80,8 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     if env['rack.request.cookie_hash'] && env['rack.request.cookie_hash'][key]
       redis.del(prefixed(env['rack.request.cookie_hash'][key]))
     end
-  rescue Errno::ECONNREFUSED
-    if defined?(Rails)
-      Rails.logger.warn('RedisSessionStore#destroy: ' <<
-                        'Connection to redis refused')
-    else
-      warn('RedisSessionStore#destroy: Connection to redis refused')
-    end
+  rescue Errno::ECONNREFUSED => e
+    Rails.logger.warn("RedisSessionStore#destroy: #{e.message}")
+    false
   end
 end

@@ -4,6 +4,7 @@ unless defined?(ActionDispatch::Session::AbstractStore)
   module ActionDispatch # rubocop:disable Documentation
     module Session
       class AbstractStore
+        ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
         DEFAULT_OPTIONS = {
           key: '_session_id',
           path: '/',
