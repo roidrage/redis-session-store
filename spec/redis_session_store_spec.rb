@@ -108,12 +108,10 @@ describe RedisSessionStore do
     let(:options)      { { expire_after: 123 } }
 
     context 'when successfully persisting the session' do
-
       it 'returns the session id' do
         store.send(:set_session, env, session_id, session_data, options)
           .should eq(session_id)
       end
-
     end
 
     context 'when unsuccessfully persisting the session' do
@@ -127,6 +125,33 @@ describe RedisSessionStore do
       end
     end
 
+    context 'when no expire_after option is given' do
+      let(:options) { {} }
+
+      it 'sets the session value without expiry' do
+        store.send(:set_session, env, session_id, session_data, options)
+          .should eq(session_id)
+      end
+    end
+
+    context 'when redis is down' do
+      before { store.stub(:redis).and_raise(Errno::ECONNREFUSED) }
+
+      it 'returns false' do
+        store.send(:set_session, env, session_id, session_data, options)
+          .should eq(false)
+      end
+
+      context 'when :raise_errors option is truthy' do
+        let(:options) { { raise_errors: true } }
+
+        it 'explodes' do
+          expect do
+            store.send(:set_session, env, session_id, session_data, options)
+          end.to raise_error(Errno::ECONNREFUSED)
+        end
+      end
+    end
   end
 
   describe 'fetching a session' do
@@ -146,12 +171,21 @@ describe RedisSessionStore do
     end
 
     context 'when redis is down' do
+      before { store.stub(:redis).and_raise(Errno::ECONNREFUSED) }
 
       it 'should return an empty session hash' do
-        store.stub(:redis).and_raise(Errno::ECONNREFUSED)
-
         expect(store.send(:get_session, double('env'), fake_key))
           .to eq([fake_key, {}])
+      end
+
+      context 'when :raise_errors option is truthy' do
+        let(:options) { { raise_errors: true } }
+
+        it 'explodes' do
+          expect do
+            store.send(:get_session, double('env'), fake_key)
+          end.to raise_error(Errno::ECONNREFUSED)
+        end
       end
     end
   end
@@ -173,6 +207,24 @@ describe RedisSessionStore do
           .with("#{options[:key_prefix]}#{fake_key}")
 
         store.send(:destroy, env)
+      end
+
+      context 'when redis is down' do
+        before { store.stub(:redis).and_raise(Errno::ECONNREFUSED) }
+
+        it 'should return false' do
+          expect(store.send(:destroy, env)).to be_false
+        end
+
+        context 'when :raise_errors option is truthy' do
+          let(:options) { { raise_errors: true } }
+
+          it 'explodes' do
+            expect do
+              store.send(:destroy, env)
+            end.to raise_error(Errno::ECONNREFUSED)
+          end
+        end
       end
     end
 

@@ -31,3 +31,13 @@ unless defined?(ActionDispatch::Session::AbstractStore)
     end
   end
 end
+
+unless defined?(Rails)
+  require 'logger'
+
+  module Rails
+    def self.logger
+      @logger ||= Logger.new('/dev/null')
+    end
+  end
+end
