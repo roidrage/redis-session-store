@@ -4,6 +4,7 @@ unless defined?(ActionDispatch::Session::AbstractStore)
   module ActionDispatch # rubocop:disable Documentation
     module Session
       class AbstractStore
+        ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
         DEFAULT_OPTIONS = {
           key: '_session_id',
           path: '/',
@@ -27,6 +28,16 @@ unless defined?(ActionDispatch::Session::AbstractStore)
           rand(999..9999).to_s(16)
         end
       end
+    end
+  end
+end
+
+unless defined?(Rails)
+  require 'logger'
+
+  module Rails
+    def self.logger
+      @logger ||= Logger.new('/dev/null')
     end
   end
 end
