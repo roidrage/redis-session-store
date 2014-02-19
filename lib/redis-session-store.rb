@@ -3,19 +3,31 @@ require 'redis'
 
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
-#
-# Options:
-#  :key     => Same as with the other cookie stores, key name
-#  :redis => {
-#    :host    => Redis host name, default is localhost
-#    :port    => Redis port, default is 6379
-#    :db      => Database number, defaults to 0. Useful to separate your session storage from other data
-#    :key_prefix  => Prefix for keys used in Redis, e.g. myapp-. Useful to separate session storage keys visibly from others
-#    :expire_after => A number in seconds to set the timeout interval for the session. Will map directly to expiry in Redis
-#  }
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
   VERSION = '0.3.0'
 
+  # ==== Options
+  # * +:key+ - Same as with the other cookie stores, key name
+  # * +:redis+ - A hash with redis-specific options
+  #   * +:host+ - Redis host name, default is localhost
+  #   * +:port+ - Redis port, default is 6379
+  #   * +:db+ - Database number, defaults to 0.
+  #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
+  #   * +:expire_after+ - A number in seconds for session timeout
+  #
+  # ==== Examples
+  #
+  #     My::Application.config.session_store = :redis_session_store, {
+  #       :key          => 'your_session_key',
+  #       :redis        => {
+  #         :db => 2,
+  #         :expire_after => 120.minutes,
+  #         :key_prefix => "myapp:session:",
+  #         :host    => 'host', # Redis host name, default is localhost
+  #         :port    => 12345   # Redis port, default is 6379
+  #       }
+  #     }
+  #
   def initialize(app, options = {})
     super
 
@@ -68,7 +80,8 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     end
   rescue Errno::ECONNREFUSED
     if defined?(Rails)
-      Rails.logger.warn('RedisSessionStore#destroy: Connection to redis refused')
+      Rails.logger.warn('RedisSessionStore#destroy: ' <<
+                        'Connection to redis refused')
     else
       warn('RedisSessionStore#destroy: Connection to redis refused')
     end
