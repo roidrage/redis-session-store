@@ -48,15 +48,21 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def get_session(env, sid)
-    sid ||= generate_sid
-    begin
-      data = redis.get(prefixed(sid))
-      session = data.nil? ? {} : Marshal.load(data)
-    rescue Errno::ECONNREFUSED => e
-      raise e if raise_errors
+    unless sid && (session = load_session(sid))
+      sid = generate_sid
       session = {}
     end
+
     [sid, session]
+  rescue Errno::ECONNREFUSED => e
+    raise e if raise_errors
+    [generate_sid, {}]
+  end
+
+  def load_session(sid)
+    data = redis.get(prefixed(sid))
+
+    data ? Marshal.load(data) : nil
   end
 
   def set_session(env, sid, session_data, options = nil)

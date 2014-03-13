@@ -11,4 +11,5 @@ Redis Session Store authors
 - Justin McNally
 - Mathias Meyer
 - Michael Fields
+- Olek Poplavsky
 - Tim Lossen
