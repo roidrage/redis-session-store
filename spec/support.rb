@@ -1,9 +1,9 @@
 # vim:fileencoding=utf-8
 
 unless defined?(ActionDispatch::Session::AbstractStore)
-  module ActionDispatch # rubocop:disable Documentation
+  module ActionDispatch
     module Session
-      class AbstractStore
+      class AbstractStore # rubocop:disable Documentation
         ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
         DEFAULT_OPTIONS = {
           key: '_session_id',
@@ -35,7 +35,7 @@ end
 unless defined?(Rails)
   require 'logger'
 
-  module Rails
+  module Rails # rubocop:disable Documentation
     def self.logger
       @logger ||= Logger.new('/dev/null')
     end

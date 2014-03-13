@@ -171,11 +171,19 @@ describe RedisSessionStore do
     end
 
     context 'when redis is down' do
-      before { store.stub(:redis).and_raise(Errno::ECONNREFUSED) }
+      before do
+        store.stub(:redis).and_raise(Errno::ECONNREFUSED)
+        store.stub(generate_sid: 'foop')
+      end
 
-      it 'should return an empty session hash' do
-        expect(store.send(:get_session, double('env'), fake_key))
-          .to eq([fake_key, {}])
+      it 'returns an empty session hash' do
+        expect(store.send(:get_session, double('env'), fake_key).last)
+          .to eq({})
+      end
+
+      it 'returns a newly generated sid' do
+        expect(store.send(:get_session, double('env'), fake_key).first)
+          .to eq('foop')
       end
 
       context 'when :raise_errors option is truthy' do
