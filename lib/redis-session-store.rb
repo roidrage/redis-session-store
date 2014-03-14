@@ -31,7 +31,7 @@ class RedisSessionStore < ActionController::Session::AbstractStore
     end
 
     def get_session(env, sid)
-      unless sid && (session = load_session(sid))
+      unless sid && (session = load_session_from_redis(sid))
         sid = generate_sid
         session = {}
       end
@@ -41,7 +41,7 @@ class RedisSessionStore < ActionController::Session::AbstractStore
       [generate_sid, {}]
     end
 
-    def load_session(sid)
+    def load_session_from_redis(sid)
       data = @redis.get(prefixed(sid))
 
       data ? Marshal.load(data) : nil
