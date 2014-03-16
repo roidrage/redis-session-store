@@ -150,8 +150,8 @@ describe RedisSessionStore do
         expect(@redis_down_handled).to be_true
       end
 
-      context 'when :raise_errors option is truthy' do
-        let(:options) { { raise_errors: true } }
+      context 'when :on_redis_down re-raises' do
+        before { store.on_redis_down = ->(e, *) { fail e } }
 
         it 'explodes' do
           expect do
@@ -196,8 +196,8 @@ describe RedisSessionStore do
           .to eq('foop')
       end
 
-      context 'when :raise_errors option is truthy' do
-        let(:options) { { raise_errors: true } }
+      context 'when :on_redis_down re-raises' do
+        before { store.on_redis_down = ->(e, *) { fail e } }
 
         it 'explodes' do
           expect do
@@ -234,8 +234,8 @@ describe RedisSessionStore do
           expect(store.send(:destroy, env)).to be_false
         end
 
-        context 'when :raise_errors option is truthy' do
-          let(:options) { { raise_errors: true } }
+        context 'when :on_redis_down re-raises' do
+          before { store.on_redis_down = ->(e, *) { fail e } }
 
           it 'explodes' do
             expect do
@@ -259,11 +259,7 @@ describe RedisSessionStore do
   end
 
   describe 'generating a sid' do
-    let :options do
-      {
-        on_sid_collision: ->(sid) { @sid = sid }
-      }
-    end
+    before { store.on_sid_collision = ->(sid) { @sid = sid } }
 
     context 'when the generated sid is unique' do
       before do

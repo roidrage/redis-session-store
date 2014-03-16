@@ -41,7 +41,6 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @default_options.merge!(namespace: 'rack:session')
     @default_options.merge!(redis_options)
     @redis = Redis.new(redis_options)
-    @raise_errors = !options[:raise_errors].nil?
     @on_sid_collision = options[:on_sid_collision]
     @on_redis_down = options[:on_redis_down]
   end
@@ -50,7 +49,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   private
 
-  attr_reader :redis, :key, :default_options, :raise_errors
+  attr_reader :redis, :key, :default_options
 
   def prefixed(sid)
     "#{default_options[:key_prefix]}#{sid}"
@@ -65,10 +64,12 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def sid_collision?(sid)
     prefixed_sid = prefixed(sid)
-    return false unless redis.get(prefixed_sid)
-
-    on_sid_collision.call(sid) if on_sid_collision.respond_to?(:call)
-    true
+    if redis.get(prefixed_sid)
+      on_sid_collision.call(sid) if on_sid_collision
+      true
+    else
+      false
+    end
   end
 
   def get_session(env, sid)
@@ -79,7 +80,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
     [sid, session]
   rescue Errno::ECONNREFUSED => e
-    handle_redis_down(e, env, sid)
+    on_redis_down.call(e, env, sid) if on_redis_down
     [generate_sid, {}]
   end
 
@@ -97,7 +98,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     end
     return sid
   rescue Errno::ECONNREFUSED => e
-    handle_redis_down(e, env, sid)
+    on_redis_down.call(e, env, sid) if on_redis_down
     return false
   end
 
@@ -112,12 +113,9 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
       redis.del(prefixed(env['rack.request.cookie_hash'][key]))
     end
   rescue Errno::ECONNREFUSED => e
-    handle_redis_down(e, env, env['rack.request.cookie_hash'][key])
+    on_redis_down.call(
+      e, env, env['rack.request.cookie_hash'][key]
+    ) if on_redis_down
     false
-  end
-
-  def handle_redis_down(e, env, sid)
-    on_redis_down.call(e, env, sid) if on_redis_down.respond_to?(:call)
-    fail e if raise_errors
   end
 end
