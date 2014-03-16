@@ -14,7 +14,6 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #   * +:db+ - Database number, defaults to 0.
   #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
   #   * +:expire_after+ - A number in seconds for session timeout
-  # * +:raise_errors:+ - Re-raise all rescued exceptions if truthy
   # * +:on_sid_collision:+ - Called with SID string when generated SID collides
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
   #
