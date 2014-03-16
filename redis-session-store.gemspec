@@ -25,7 +25,7 @@ Gem::Specification.new do |gem|
 
   gem.name          = 'redis-session-store'
   gem.require_paths = ['lib']
-  gem.version       = '0.2.3'
+  gem.version       = '0.2.4'
 
   gem.add_dependency 'redis'
 end
