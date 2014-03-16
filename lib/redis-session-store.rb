@@ -62,12 +62,9 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def sid_collision?(sid)
-    prefixed_sid = prefixed(sid)
-    if redis.get(prefixed_sid)
-      on_sid_collision.call(sid) if on_sid_collision
-      true
-    else
-      false
+    redis.get(prefixed(sid)).tap do |value|
+      on_sid_collision.call(sid) if value && on_sid_collision
+      !value.nil?
     end
   end
 
