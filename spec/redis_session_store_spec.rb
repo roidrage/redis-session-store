@@ -135,11 +135,19 @@ describe RedisSessionStore do
     end
 
     context 'when redis is down' do
-      before { store.stub(:redis).and_raise(Errno::ECONNREFUSED) }
+      before do
+        store.stub(:redis).and_raise(Errno::ECONNREFUSED)
+        store.on_redis_down = ->(*a) { @redis_down_handled = true }
+      end
 
       it 'returns false' do
         store.send(:set_session, env, session_id, session_data, options)
           .should eq(false)
+      end
+
+      it 'calls the on_redis_down handler' do
+        store.send(:set_session, env, session_id, session_data, options)
+        expect(@redis_down_handled).to be_true
       end
 
       context 'when :raise_errors option is truthy' do
@@ -253,7 +261,7 @@ describe RedisSessionStore do
   describe 'generating a sid' do
     let :options do
       {
-        log_collisions: true
+        on_sid_collision: ->(sid) { @sid = sid }
       }
     end
 
@@ -274,9 +282,9 @@ describe RedisSessionStore do
         store.stub(redis: redis)
       end
 
-      it 'logs the collision' do
-        Rails.logger.should_receive(:warn).with(/collision found/)
+      it 'passes the colliding sid to the collision handler' do
         store.send(:sid_collision?, 'whatever')
+        expect(@sid).to eql('whatever')
       end
     end
   end

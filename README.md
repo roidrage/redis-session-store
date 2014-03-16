@@ -19,8 +19,8 @@ only suitable for Rails applications. For other frameworks or
 drop-in support for caching, check out
 [redis-store](http://github.com/jodosha/redis-store/)
 
-Compatibility
--------------
+Rails 2 Compatibility
+---------------------
 
 This gem is currently only compatible with Rails 3+.  If you need
 Rails 2 compatibility, be sure to pin to a lower version like so:
@@ -44,17 +44,41 @@ In your Rails app, throw in an initializer with the following contents:
 
 ``` ruby
 My::Application.config.session_store = :redis_session_store, {
-  :key          => 'your_session_key',
-  :redis        => {
-    :db => 2,
-    :expire_after => 120.minutes,
-    :key_prefix => "myapp:session:",
-    :host    => 'host', # Redis host name, default is localhost
-    :port    => 12345   # Redis port, default is 6379
+  key: 'your_session_key',
+  redis: {
+    db: 2,
+    expire_after: 120.minutes,
+    key_prefix: 'myapp:session:',
+    host: 'host', # Redis host name, default is localhost
+    port: 12345   # Redis port, default is 6379
   }
 }
 ```
-    
+
+### Session ID collision handling
+
+If you want to handle cases where the generated session ID (sid)
+collides with an existing session ID, a custom callable handler may be
+provided as `on_sid_collision`:
+
+``` ruby
+My::Application.config.session_store = :redis_session_store, {
+  # ... other options ...
+  on_sid_collision: ->(sid) { Rails.logger.warn("SID collision! #{sid}") }
+}
+```
+
+### Redis unavailability handling
+
+If you want to handle cases where Redis is unavailable, a custom
+callable handler may be provided as `on_redis_down`:
+
+``` ruby
+My::Application.config.session_store = :redis_session_store, {
+  # ... other options ...
+  on_redis_down: ->(e, env, sid) { do_something_will_ya!(e) }
+}
+```
 
 Contributing, Authors, & License
 --------------------------------
