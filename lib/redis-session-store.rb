@@ -30,6 +30,13 @@ class RedisSessionStore < ActionController::Session::AbstractStore
       "#{@default_options[:key_prefix]}#{sid}"
     end
 
+    def generate_sid
+      loop do
+        sid = super
+        break sid unless @redis.get(prefixed(sid))
+      end
+    end
+
     def get_session(env, sid)
       unless sid && (session = load_session_from_redis(sid))
         sid = generate_sid
