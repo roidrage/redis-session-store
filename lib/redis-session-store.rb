@@ -51,8 +51,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   def generate_sid
     loop do
       sid = super
-      next if sid_collision?(sid)
-      break sid
+      break sid unless sid_collision?(sid)
     end
   end
 
