@@ -108,13 +108,12 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def destroy(env)
-    if env['rack.request.cookie_hash'] && env['rack.request.cookie_hash'][key]
-      redis.del(prefixed(env['rack.request.cookie_hash'][key]))
+    if env['rack.request.cookie_hash'] &&
+        (sid = env['rack.request.cookie_hash'][key])
+      redis.del(prefixed(sid))
     end
   rescue Errno::ECONNREFUSED => e
-    on_redis_down.call(
-      e, env, env['rack.request.cookie_hash'][key]
-    ) if on_redis_down
+    on_redis_down.call(e, env, sid) if on_redis_down
     false
   end
 end
