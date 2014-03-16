@@ -160,11 +160,13 @@ describe RedisSessionStore do
         key_prefix: 'customprefix::'
       }
     end
+
     let(:fake_key) { 'thisisarediskey' }
 
     it 'should retrieve the prefixed key from redis' do
       redis = double('redis')
       store.stub(redis: redis)
+      store.stub(generate_sid: fake_key)
       expect(redis).to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
 
       store.send(:get_session, double('env'), fake_key)
@@ -238,12 +240,43 @@ describe RedisSessionStore do
 
     context 'when destroyed via #destroy_session' do
       it 'deletes the prefixed key from redis' do
-        redis = double('redis')
-        sid = store.send(:generate_sid)
+        redis = double('redis', get: nil)
         store.stub(redis: redis)
+        sid = store.send(:generate_sid)
         expect(redis).to receive(:del).with("#{options[:key_prefix]}#{sid}")
 
         store.send(:destroy_session, {}, sid, nil)
+      end
+    end
+  end
+
+  describe 'generating a sid' do
+    let :options do
+      {
+        log_collisions: true
+      }
+    end
+
+    context 'when the generated sid is unique' do
+      before do
+        redis = double('redis', get: nil)
+        store.stub(redis: redis)
+      end
+
+      it 'returns the sid' do
+        expect(store.send(:generate_sid)).to_not be_nil
+      end
+    end
+
+    context 'when there is a generated sid collision' do
+      before do
+        redis = double('redis', get: 'herp a derp')
+        store.stub(redis: redis)
+      end
+
+      it 'logs the collision' do
+        Rails.logger.should_receive(:warn).with(/collision found/)
+        store.send(:sid_collision?, 'whatever')
       end
     end
   end

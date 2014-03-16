@@ -37,14 +37,34 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @default_options.merge!(redis_options)
     @redis = Redis.new(redis_options)
     @raise_errors = !options[:raise_errors].nil?
+    @log_collisions = !options[:log_collisions].nil?
   end
 
   private
 
-  attr_reader :redis, :key, :default_options, :raise_errors
+  attr_reader :redis, :key, :default_options, :raise_errors, :log_collisions
 
   def prefixed(sid)
     "#{default_options[:key_prefix]}#{sid}"
+  end
+
+  def generate_sid
+    loop do
+      sid = super
+      next if sid_collision?(sid)
+      break sid
+    end
+  end
+
+  def sid_collision?(sid)
+    prefixed_sid = prefixed(sid)
+    return false unless redis.get(prefixed_sid)
+
+    Rails.logger.warn(
+      'RedisSessionStore#generate_sid: ' <<
+        "collision found with key #{prefixed_sid.inspect}"
+    ) if log_collisions
+    true
   end
 
   def get_session(env, sid)
