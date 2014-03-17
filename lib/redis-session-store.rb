@@ -58,7 +58,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def verify_handlers!
     %w(on_sid_collision on_redis_down on_session_load_error).each do |h|
-      if (handler = send(h)) && !handler.respond_to?(:call)
+      if (handler = public_send(h)) && !handler.respond_to?(:call)
         fail ArgumentError, "#{h} handler is not callable"
       end
     end
@@ -98,7 +98,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     begin
       data ? decode(data) : nil
     rescue => e
-      on_session_load_error.call(e, sid) if on_session_load_error
+      on_session_load_error.call(e, sid, self) if on_session_load_error
       nil
     end
   end

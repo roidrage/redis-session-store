@@ -353,9 +353,10 @@ describe RedisSessionStore do
 
       context 'when a custom on_session_load_error handler is provided' do
         before do
-          store.on_session_load_error = lambda do |e, sid|
+          store.on_session_load_error = lambda do |e, sid, store|
             @e = e
             @sid = sid
+            @store = store
           end
         end
 
@@ -380,9 +381,10 @@ describe RedisSessionStore do
 
       context 'when a custom on_session_load_error handler is provided' do
         before do
-          store.on_session_load_error = lambda do |e, sid|
+          store.on_session_load_error = lambda do |e, sid, store|
             @e = e
             @sid = sid
+            @store = store
           end
         end
 
@@ -390,6 +392,7 @@ describe RedisSessionStore do
           store.send(:load_session_from_redis, 'foo')
           expect(@e).to be_kind_of(StandardError)
           expect(@sid).to eql('foo')
+          expect(@store).to be(store)
         end
       end
     end
