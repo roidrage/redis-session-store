@@ -1,6 +1,12 @@
 redis-session-store history
 ===========================
 
+## v0.6.0 (2014-03-17)
+
+* Add custom serializer configuration
+* Add custom handling capability for session load errors
+* Always destroying sessions that cannot be loaded
+
 ## v0.5.0 (2014-03-16)
 
 * Keep generating session IDs until one is found that doesn't collide
