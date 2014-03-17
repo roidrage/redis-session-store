@@ -126,7 +126,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def destroy_session(env, sid, options)
-    destroy_session_from_sid(sid, (options || {}).merge(env: env))
+    destroy_session_from_sid(sid, (options || {}).to_hash.merge(env: env))
   end
 
   def destroy(env)
