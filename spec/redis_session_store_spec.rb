@@ -1,4 +1,5 @@
 # vim:fileencoding=utf-8
+require 'json'
 
 describe RedisSessionStore do
   let :random_string do
@@ -281,6 +282,59 @@ describe RedisSessionStore do
       it 'passes the colliding sid to the collision handler' do
         store.send(:sid_collision?, 'whatever')
         expect(@sid).to eql('whatever')
+      end
+    end
+  end
+
+  describe 'session encoding' do
+    let(:env)          { double('env') }
+    let(:session_id)   { 12_345 }
+    let(:session_data) { { 'some' => 'data' } }
+    let(:options)      { {} }
+    let(:encoded_data) { Marshal.dump(session_data) }
+    let(:redis)        { double('redis', set: nil, get: encoded_data) }
+    let(:expected_encoding) { encoded_data }
+
+    before do
+      store.stub(:redis).and_return(redis)
+    end
+
+    shared_examples_for 'serializer' do
+      it 'encodes correctly' do
+        redis.should_receive(:set).with('12345', expected_encoding)
+        store.send(:set_session, env, session_id, session_data, options)
+      end
+
+      it 'decodes correctly' do
+        expect(store.send(:get_session, env, session_id))
+          .to eq([session_id, session_data])
+      end
+    end
+
+    context 'marshal' do
+      let(:options) { { serializer: :marshal } }
+      it_should_behave_like 'serializer'
+    end
+
+    context 'json' do
+      let(:options) { { serializer: :json } }
+      let(:encoded_data) { '{"some":"data"}' }
+
+      it_should_behave_like 'serializer'
+    end
+
+    context 'hybrid' do
+      let(:options) { { serializer: :hybrid } }
+      let(:expected_encoding) { '{"some":"data"}' }
+
+      context 'marshal encoded data' do
+        it_should_behave_like 'serializer'
+      end
+
+      context 'json encoded data' do
+        let(:encoded_data) { '{"some":"data"}' }
+
+        it_should_behave_like 'serializer'
       end
     end
   end

@@ -42,13 +42,14 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @redis = Redis.new(redis_options)
     @on_sid_collision = options[:on_sid_collision]
     @on_redis_down = options[:on_redis_down]
+    @serializer = determine_serializer(options[:serializer])
   end
 
   attr_accessor :on_sid_collision, :on_redis_down
 
   private
 
-  attr_reader :redis, :key, :default_options
+  attr_reader :redis, :key, :default_options, :serializer
 
   def prefixed(sid)
     "#{default_options[:key_prefix]}#{sid}"
@@ -81,20 +82,28 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
-    data ? Marshal.load(data) : nil
+    data ? decode(data) : nil
+  end
+
+  def decode(data)
+    serializer.load(data)
   end
 
   def set_session(env, sid, session_data, options = nil)
     expiry = (options || env[ENV_SESSION_OPTIONS_KEY])[:expire_after]
     if expiry
-      redis.setex(prefixed(sid), expiry, Marshal.dump(session_data))
+      redis.setex(prefixed(sid), expiry, encode(session_data))
     else
-      redis.set(prefixed(sid), Marshal.dump(session_data))
+      redis.set(prefixed(sid), encode(session_data))
     end
     return sid
   rescue Errno::ECONNREFUSED => e
     on_redis_down.call(e, env, sid) if on_redis_down
     return false
+  end
+
+  def encode(session_data)
+    serializer.dump(session_data)
   end
 
   def destroy_session(env, sid, options)
@@ -111,5 +120,45 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   rescue Errno::ECONNREFUSED => e
     on_redis_down.call(e, env, sid) if on_redis_down
     false
+  end
+
+  def determine_serializer(serializer)
+    serializer ||= :marshal
+    case serializer
+    when :marshal then Marshal
+    when :json    then JsonSerializer
+    when :hybrid  then HybridSerializer
+    else serializer
+    end
+  end
+
+  # Uses built-in JSON library to encode/decode session
+  class JsonSerializer
+    def self.load(value)
+      JSON.parse(value, quirks_mode: true)
+    end
+
+    def self.dump(value)
+      JSON.generate(value, quirks_mode: true)
+    end
+  end
+
+  # Transparently migrates existing session values from Marshal to JSON
+  class HybridSerializer < JsonSerializer
+    MARSHAL_SIGNATURE = "\x04\x08".freeze
+
+    def self.load(value)
+      if needs_migration?(value)
+        Marshal.load(value)
+      else
+        super
+      end
+    end
+
+    private
+
+    def self.needs_migration?(value)
+      value.start_with?(MARSHAL_SIGNATURE)
+    end
   end
 end
