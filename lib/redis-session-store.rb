@@ -16,6 +16,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #   * +:expire_after+ - A number in seconds for session timeout
   # * +:on_sid_collision:+ - Called with SID string when generated SID collides
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
+  # * +:on_session_load_error:+ - Called with err and SID on Marshal.load fail
   # * +:serializer:+ - Serializer to use on session data, default is :marshal.
   #
   # ==== Examples
@@ -45,9 +46,10 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @on_sid_collision = options[:on_sid_collision]
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
+    @on_session_load_error = options[:on_session_load_error]
   end
 
-  attr_accessor :on_sid_collision, :on_redis_down
+  attr_accessor :on_sid_collision, :on_redis_down, :on_session_load_error
 
   private
 
@@ -84,7 +86,12 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
-    data ? decode(data) : nil
+    begin
+      data ? decode(data) : nil
+    rescue => e
+      on_session_load_error.call(e, sid) if on_session_load_error
+      nil
+    end
   end
 
   def decode(data)
