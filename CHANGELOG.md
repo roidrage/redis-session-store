@@ -1,6 +1,11 @@
 redis-session-store history
 ===========================
 
+## v0.6.1 (2014-03-17)
+
+* Fix compatibility with `ActionDispatch::Request::Session::Options`
+  when destroying sessions.
+
 ## v0.6.0 (2014-03-17)
 
 * Add custom serializer configuration
