@@ -105,16 +105,16 @@ because the `Flash` object doesn't serializer well in 3.2. See [Rails
 
 If you want to handle cases where the session data cannot be loaded, a
 custom callable handler may be provided as `on_session_load_error` which
-will be given the error, the session ID, and the session store itself.
-In this way, the session store may be used directly to remove the
-session without having to reach through `ActionWhatever`:
+will be given the error and the session ID.
 
 ``` ruby
 My::Application.config.session_store = :redis_session_store, {
   # ... other options ...
-  on_session_load_error: ->(e, sid, store) { do_something_will_ya!(e) }
+  on_session_load_error: ->(e, sid) { do_something_will_ya!(e) }
 }
 ```
+
+**Note** The session will *always* be destroyed when it cannot be loaded.
 
 Contributing, Authors, & License
 --------------------------------
