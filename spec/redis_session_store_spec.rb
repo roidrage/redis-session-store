@@ -135,15 +135,23 @@ describe RedisSessionStore do
     end
 
     context 'when redis is down' do
-      before { store.stub(:redis).and_raise(Errno::ECONNREFUSED) }
+      before do
+        store.stub(:redis).and_raise(Errno::ECONNREFUSED)
+        store.on_redis_down = ->(*a) { @redis_down_handled = true }
+      end
 
       it 'returns false' do
         store.send(:set_session, env, session_id, session_data, options)
           .should eq(false)
       end
 
-      context 'when :raise_errors option is truthy' do
-        let(:options) { { raise_errors: true } }
+      it 'calls the on_redis_down handler' do
+        store.send(:set_session, env, session_id, session_data, options)
+        expect(@redis_down_handled).to be_true
+      end
+
+      context 'when :on_redis_down re-raises' do
+        before { store.on_redis_down = ->(e, *) { fail e } }
 
         it 'explodes' do
           expect do
@@ -160,11 +168,13 @@ describe RedisSessionStore do
         key_prefix: 'customprefix::'
       }
     end
+
     let(:fake_key) { 'thisisarediskey' }
 
     it 'should retrieve the prefixed key from redis' do
       redis = double('redis')
       store.stub(redis: redis)
+      store.stub(generate_sid: fake_key)
       expect(redis).to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
 
       store.send(:get_session, double('env'), fake_key)
@@ -186,8 +196,8 @@ describe RedisSessionStore do
           .to eq('foop')
       end
 
-      context 'when :raise_errors option is truthy' do
-        let(:options) { { raise_errors: true } }
+      context 'when :on_redis_down re-raises' do
+        before { store.on_redis_down = ->(e, *) { fail e } }
 
         it 'explodes' do
           expect do
@@ -224,8 +234,8 @@ describe RedisSessionStore do
           expect(store.send(:destroy, env)).to be_false
         end
 
-        context 'when :raise_errors option is truthy' do
-          let(:options) { { raise_errors: true } }
+        context 'when :on_redis_down re-raises' do
+          before { store.on_redis_down = ->(e, *) { fail e } }
 
           it 'explodes' do
             expect do
@@ -238,12 +248,39 @@ describe RedisSessionStore do
 
     context 'when destroyed via #destroy_session' do
       it 'deletes the prefixed key from redis' do
-        redis = double('redis')
-        sid = store.send(:generate_sid)
+        redis = double('redis', get: nil)
         store.stub(redis: redis)
+        sid = store.send(:generate_sid)
         expect(redis).to receive(:del).with("#{options[:key_prefix]}#{sid}")
 
         store.send(:destroy_session, {}, sid, nil)
+      end
+    end
+  end
+
+  describe 'generating a sid' do
+    before { store.on_sid_collision = ->(sid) { @sid = sid } }
+
+    context 'when the generated sid is unique' do
+      before do
+        redis = double('redis', get: nil)
+        store.stub(redis: redis)
+      end
+
+      it 'returns the sid' do
+        expect(store.send(:generate_sid)).to_not be_nil
+      end
+    end
+
+    context 'when there is a generated sid collision' do
+      before do
+        redis = double('redis', get: 'herp a derp')
+        store.stub(redis: redis)
+      end
+
+      it 'passes the colliding sid to the collision handler' do
+        store.send(:sid_collision?, 'whatever')
+        expect(@sid).to eql('whatever')
       end
     end
   end

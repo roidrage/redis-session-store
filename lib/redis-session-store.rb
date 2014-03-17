@@ -4,7 +4,7 @@ require 'redis'
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
-  VERSION = '0.4.2'
+  VERSION = '0.5.0'
 
   # ==== Options
   # * +:key+ - Same as with the other cookie stores, key name
@@ -14,18 +14,22 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #   * +:db+ - Database number, defaults to 0.
   #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
   #   * +:expire_after+ - A number in seconds for session timeout
+  # * +:on_sid_collision:+ - Called with SID string when generated SID collides
+  # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
   #
   # ==== Examples
   #
   #     My::Application.config.session_store = :redis_session_store, {
-  #       :key          => 'your_session_key',
-  #       :redis        => {
-  #         :db => 2,
-  #         :expire_after => 120.minutes,
-  #         :key_prefix => "myapp:session:",
-  #         :host    => 'host', # Redis host name, default is localhost
-  #         :port    => 12345   # Redis port, default is 6379
-  #       }
+  #       key: 'your_session_key',
+  #       redis: {
+  #         db: 2,
+  #         expire_after: 120.minutes,
+  #         key_prefix: 'myapp:session:',
+  #         host: 'host', # Redis host name, default is localhost
+  #         port: 12345   # Redis port, default is 6379
+  #       },
+  #       on_sid_collision: ->(sid) { logger.warn("SID collision! #{sid}") },
+  #       on_redis_down: ->(*a) { logger.error("Redis down! #{a.inspect}") }
   #     }
   #
   def initialize(app, options = {})
@@ -36,15 +40,31 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @default_options.merge!(namespace: 'rack:session')
     @default_options.merge!(redis_options)
     @redis = Redis.new(redis_options)
-    @raise_errors = !options[:raise_errors].nil?
+    @on_sid_collision = options[:on_sid_collision]
+    @on_redis_down = options[:on_redis_down]
   end
+
+  attr_accessor :on_sid_collision, :on_redis_down
 
   private
 
-  attr_reader :redis, :key, :default_options, :raise_errors
+  attr_reader :redis, :key, :default_options
 
   def prefixed(sid)
     "#{default_options[:key_prefix]}#{sid}"
+  end
+
+  def generate_sid
+    loop do
+      sid = super
+      break sid unless sid_collision?(sid)
+    end
+  end
+
+  def sid_collision?(sid)
+    !!redis.get(prefixed(sid)).tap do |value| # rubocop: disable DoubleNegation
+      on_sid_collision.call(sid) if value && on_sid_collision
+    end
   end
 
   def get_session(env, sid)
@@ -55,7 +75,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
     [sid, session]
   rescue Errno::ECONNREFUSED => e
-    raise e if raise_errors
+    on_redis_down.call(e, env, sid) if on_redis_down
     [generate_sid, {}]
   end
 
@@ -73,7 +93,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     end
     return sid
   rescue Errno::ECONNREFUSED => e
-    raise e if raise_errors
+    on_redis_down.call(e, env, sid) if on_redis_down
     return false
   end
 
@@ -84,12 +104,12 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def destroy(env)
-    if env['rack.request.cookie_hash'] && env['rack.request.cookie_hash'][key]
-      redis.del(prefixed(env['rack.request.cookie_hash'][key]))
+    if env['rack.request.cookie_hash'] &&
+        (sid = env['rack.request.cookie_hash'][key])
+      redis.del(prefixed(sid))
     end
   rescue Errno::ECONNREFUSED => e
-    raise e if raise_errors
-    Rails.logger.warn("RedisSessionStore#destroy: #{e.message}")
+    on_redis_down.call(e, env, sid) if on_redis_down
     false
   end
 end
