@@ -337,9 +337,28 @@ describe RedisSessionStore do
         it_should_behave_like 'serializer'
       end
     end
+
+    context 'custom' do
+      let :custom_serializer do
+        Class.new do
+          def self.load(value)
+            { 'some' => 'data' }
+          end
+
+          def self.dump(value)
+            'somedata'
+          end
+        end
+      end
+
+      let(:options) { { serializer: custom_serializer } }
+      let(:expected_encoding) { 'somedata' }
+
+      it_should_behave_like 'serializer'
+    end
   end
 
-  describe 'handling marshal errors' do
+  describe 'handling decode errors' do
     context 'when a class is serialized that does not exist' do
       before do
         store.stub(
@@ -368,7 +387,7 @@ describe RedisSessionStore do
       end
     end
 
-    context 'when the marshalled data is invalid' do
+    context 'when the encoded data is invalid' do
       before do
         store.stub(
           redis: double('redis', get: "\x00\x00\x00\x00")
