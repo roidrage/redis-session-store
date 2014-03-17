@@ -16,6 +16,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #   * +:expire_after+ - A number in seconds for session timeout
   # * +:on_sid_collision:+ - Called with SID string when generated SID collides
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
+  # * +:serializer:+ - Serializer to use on session data, default is :marshal.
   #
   # ==== Examples
   #
@@ -30,6 +31,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #       },
   #       on_sid_collision: ->(sid) { logger.warn("SID collision! #{sid}") },
   #       on_redis_down: ->(*a) { logger.error("Redis down! #{a.inspect}") }
+  #       serializer: :hybrid # migrate from Marshal to JSON
   #     }
   #
   def initialize(app, options = {})
