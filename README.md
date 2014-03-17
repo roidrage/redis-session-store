@@ -80,6 +80,27 @@ My::Application.config.session_store = :redis_session_store, {
 }
 ```
 
+### Serializer
+
+By default the Marshal serializer is used. With Rails 4, you can use JSON as a
+custom serializer:
+
+* `:json` - serialize cookie values with `JSON` (Requires Rails 4+)
+* `:marshal` - serialize cookie values with `Marshal` (Default)
+* `:hybrid` - transparently migrate existing `Marshal` cookie values to `JSON` (Requires Rails 4+)
+* `CustomClass` - You can just pass the constant name of any class that responds to `.load` and `.dump`
+
+``` ruby
+My::Application.config.session_store = :redis_session_store, {
+  # ... other options ...
+  serializer: :hybrid
+}
+```
+
+**Note**: Rails 4 is required for using the `:json` and `:hybrid` serializers
+because the `Flash` object doesn't serializer well in 3.2. See [Rails
+#13945](https://github.com/rails/rails/pull/13945) for more info.
+
 Contributing, Authors, & License
 --------------------------------
 
