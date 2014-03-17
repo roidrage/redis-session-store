@@ -337,5 +337,117 @@ describe RedisSessionStore do
         it_should_behave_like 'serializer'
       end
     end
+
+    context 'custom' do
+      let :custom_serializer do
+        Class.new do
+          def self.load(value)
+            { 'some' => 'data' }
+          end
+
+          def self.dump(value)
+            'somedata'
+          end
+        end
+      end
+
+      let(:options) { { serializer: custom_serializer } }
+      let(:expected_encoding) { 'somedata' }
+
+      it_should_behave_like 'serializer'
+    end
+  end
+
+  describe 'handling decode errors' do
+    context 'when a class is serialized that does not exist' do
+      before do
+        store.stub(
+          redis: double('redis', get: "\x04\bo:\nNonExistentClass\x00",
+                                 del: true)
+        )
+      end
+
+      it 'returns an empty session' do
+        expect(store.send(:load_session_from_redis, 'whatever')).to be_nil
+      end
+
+      it 'destroys and drops the session' do
+        store.should_receive(:destroy_session_from_sid).with('wut', drop: true)
+        store.send(:load_session_from_redis, 'wut')
+      end
+
+      context 'when a custom on_session_load_error handler is provided' do
+        before do
+          store.on_session_load_error = lambda do |e, sid|
+            @e = e
+            @sid = sid
+          end
+        end
+
+        it 'passes the error and the sid to the handler' do
+          store.send(:load_session_from_redis, 'foo')
+          expect(@e).to be_kind_of(StandardError)
+          expect(@sid).to eql('foo')
+        end
+      end
+    end
+
+    context 'when the encoded data is invalid' do
+      before do
+        store.stub(
+          redis: double('redis', get: "\x00\x00\x00\x00", del: true)
+        )
+      end
+
+      it 'returns an empty session' do
+        expect(store.send(:load_session_from_redis, 'bar')).to be_nil
+      end
+
+      it 'destroys and drops the session' do
+        store.should_receive(:destroy_session_from_sid).with('wut', drop: true)
+        store.send(:load_session_from_redis, 'wut')
+      end
+
+      context 'when a custom on_session_load_error handler is provided' do
+        before do
+          store.on_session_load_error = lambda do |e, sid|
+            @e = e
+            @sid = sid
+          end
+        end
+
+        it 'passes the error and the sid to the handler' do
+          store.send(:load_session_from_redis, 'foo')
+          expect(@e).to be_kind_of(StandardError)
+          expect(@sid).to eql('foo')
+        end
+      end
+    end
+  end
+
+  describe 'validating custom handlers' do
+    %w(on_redis_down on_sid_collision on_session_load_error).each do |h|
+      context 'when nil' do
+        it 'does not explode at init' do
+          expect { store }.to_not raise_error
+        end
+      end
+
+      context 'when callable' do
+        let(:options) { { :"#{h}" => ->(*) { !nil } } }
+
+        it 'does not explode at init' do
+          expect { store }.to_not raise_error
+        end
+      end
+
+      context 'when not callable' do
+        let(:options) { { :"#{h}" => 'herpderp' } }
+
+        it 'explodes at init' do
+          expect { store }.to raise_error(ArgumentError)
+        end
+      end
+    end
   end
 end

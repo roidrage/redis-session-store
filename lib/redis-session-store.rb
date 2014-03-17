@@ -4,7 +4,7 @@ require 'redis'
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
-  VERSION = '0.5.0'
+  VERSION = '0.6.0'
 
   # ==== Options
   # * +:key+ - Same as with the other cookie stores, key name
@@ -16,6 +16,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #   * +:expire_after+ - A number in seconds for session timeout
   # * +:on_sid_collision:+ - Called with SID string when generated SID collides
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
+  # * +:on_session_load_error:+ - Called with err and SID on Marshal.load fail
   # * +:serializer:+ - Serializer to use on session data, default is :marshal.
   #
   # ==== Examples
@@ -45,13 +46,23 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @on_sid_collision = options[:on_sid_collision]
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
+    @on_session_load_error = options[:on_session_load_error]
+    verify_handlers!
   end
 
-  attr_accessor :on_sid_collision, :on_redis_down
+  attr_accessor :on_sid_collision, :on_redis_down, :on_session_load_error
 
   private
 
   attr_reader :redis, :key, :default_options, :serializer
+
+  def verify_handlers!
+    %w(on_sid_collision on_redis_down on_session_load_error).each do |h|
+      if (handler = public_send(h)) && !handler.respond_to?(:call)
+        fail ArgumentError, "#{h} handler is not callable"
+      end
+    end
+  end
 
   def prefixed(sid)
     "#{default_options[:key_prefix]}#{sid}"
@@ -84,7 +95,13 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
-    data ? decode(data) : nil
+    begin
+      data ? decode(data) : nil
+    rescue => e
+      destroy_session_from_sid(sid, drop: true)
+      on_session_load_error.call(e, sid) if on_session_load_error
+      nil
+    end
   end
 
   def decode(data)
@@ -109,19 +126,22 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def destroy_session(env, sid, options)
-    redis.del(prefixed(sid))
-    return nil if (options || {})[:drop]
-    generate_sid
+    destroy_session_from_sid(sid, (options || {}).merge(env: env))
   end
 
   def destroy(env)
     if env['rack.request.cookie_hash'] &&
         (sid = env['rack.request.cookie_hash'][key])
-      redis.del(prefixed(sid))
+      destroy_session_from_sid(sid, drop: true, env: env)
     end
-  rescue Errno::ECONNREFUSED => e
-    on_redis_down.call(e, env, sid) if on_redis_down
     false
+  end
+
+  def destroy_session_from_sid(sid, options = {})
+    redis.del(prefixed(sid))
+    (options || {})[:drop] ? nil : generate_sid
+  rescue Errno::ECONNREFUSED => e
+    on_redis_down.call(e, options[:env] || {}, sid) if on_redis_down
   end
 
   def determine_serializer(serializer)
