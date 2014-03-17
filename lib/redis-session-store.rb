@@ -47,6 +47,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
     @on_session_load_error = options[:on_session_load_error]
+    verify_handlers!
   end
 
   attr_accessor :on_sid_collision, :on_redis_down, :on_session_load_error
@@ -54,6 +55,14 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   private
 
   attr_reader :redis, :key, :default_options, :serializer
+
+  def verify_handlers!
+    %w(on_sid_collision on_redis_down on_session_load_error).each do |h|
+      if (handler = send(h)) && !handler.respond_to?(:call)
+        fail ArgumentError, "#{h} handler is not callable"
+      end
+    end
+  end
 
   def prefixed(sid)
     "#{default_options[:key_prefix]}#{sid}"

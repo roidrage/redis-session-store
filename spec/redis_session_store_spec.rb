@@ -394,4 +394,30 @@ describe RedisSessionStore do
       end
     end
   end
+
+  describe 'validating custom handlers' do
+    %w(on_redis_down on_sid_collision on_session_load_error).each do |h|
+      context 'when nil' do
+        it 'does not explode at init' do
+          expect { store }.to_not raise_error
+        end
+      end
+
+      context 'when callable' do
+        let(:options) { { :"#{h}" => ->(*) { !nil } } }
+
+        it 'does not explode at init' do
+          expect { store }.to_not raise_error
+        end
+      end
+
+      context 'when not callable' do
+        let(:options) { { :"#{h}" => 'herpderp' } }
+
+        it 'explodes at init' do
+          expect { store }.to raise_error(ArgumentError)
+        end
+      end
+    end
+  end
 end
