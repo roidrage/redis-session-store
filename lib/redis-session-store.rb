@@ -98,7 +98,8 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     begin
       data ? decode(data) : nil
     rescue => e
-      on_session_load_error.call(e, sid, self) if on_session_load_error
+      destroy_session_from_sid(sid, drop: true)
+      on_session_load_error.call(e, sid) if on_session_load_error
       nil
     end
   end
@@ -125,19 +126,22 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def destroy_session(env, sid, options)
-    redis.del(prefixed(sid))
-    return nil if (options || {})[:drop]
-    generate_sid
+    destroy_session_from_sid(sid, (options || {}).merge(env: env))
   end
 
   def destroy(env)
     if env['rack.request.cookie_hash'] &&
         (sid = env['rack.request.cookie_hash'][key])
-      redis.del(prefixed(sid))
+      destroy_session_from_sid(sid, drop: true, env: env)
     end
-  rescue Errno::ECONNREFUSED => e
-    on_redis_down.call(e, env, sid) if on_redis_down
     false
+  end
+
+  def destroy_session_from_sid(sid, options = {})
+    redis.del(prefixed(sid))
+    (options || {})[:drop] ? nil : generate_sid
+  rescue Errno::ECONNREFUSED => e
+    on_redis_down.call(e, options[:env] || {}, sid) if on_redis_down
   end
 
   def determine_serializer(serializer)

@@ -362,7 +362,8 @@ describe RedisSessionStore do
     context 'when a class is serialized that does not exist' do
       before do
         store.stub(
-          redis: double('redis', get: "\x04\bo:\nNonExistentClass\x00")
+          redis: double('redis', get: "\x04\bo:\nNonExistentClass\x00",
+                                 del: true)
         )
       end
 
@@ -370,12 +371,16 @@ describe RedisSessionStore do
         expect(store.send(:load_session_from_redis, 'whatever')).to be_nil
       end
 
+      it 'destroys and drops the session' do
+        store.should_receive(:destroy_session_from_sid).with('wut', drop: true)
+        store.send(:load_session_from_redis, 'wut')
+      end
+
       context 'when a custom on_session_load_error handler is provided' do
         before do
-          store.on_session_load_error = lambda do |e, sid, store|
+          store.on_session_load_error = lambda do |e, sid|
             @e = e
             @sid = sid
-            @store = store
           end
         end
 
@@ -390,7 +395,7 @@ describe RedisSessionStore do
     context 'when the encoded data is invalid' do
       before do
         store.stub(
-          redis: double('redis', get: "\x00\x00\x00\x00")
+          redis: double('redis', get: "\x00\x00\x00\x00", del: true)
         )
       end
 
@@ -398,12 +403,16 @@ describe RedisSessionStore do
         expect(store.send(:load_session_from_redis, 'bar')).to be_nil
       end
 
+      it 'destroys and drops the session' do
+        store.should_receive(:destroy_session_from_sid).with('wut', drop: true)
+        store.send(:load_session_from_redis, 'wut')
+      end
+
       context 'when a custom on_session_load_error handler is provided' do
         before do
-          store.on_session_load_error = lambda do |e, sid, store|
+          store.on_session_load_error = lambda do |e, sid|
             @e = e
             @sid = sid
-            @store = store
           end
         end
 
@@ -411,7 +420,6 @@ describe RedisSessionStore do
           store.send(:load_session_from_redis, 'foo')
           expect(@e).to be_kind_of(StandardError)
           expect(@sid).to eql('foo')
-          expect(@store).to be(store)
         end
       end
     end
