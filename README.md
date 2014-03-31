@@ -19,21 +19,13 @@ only suitable for Rails applications. For other frameworks or
 drop-in support for caching, check out
 [redis-store](http://github.com/jodosha/redis-store/)
 
-Rails 2 Compatibility
----------------------
-
-This gem is currently only compatible with Rails 3+.  If you need
-Rails 2 compatibility, be sure to pin to a lower version like so:
-
-``` ruby
-gem 'redis-session-store', '< 0.3'
-```
-
 Installation
 ------------
 
-``` bash
-gem install redis-session-store
+For Rails 3+, adding this to your Gemfile will do the trick.
+
+``` ruby
+gem 'redis-session-store'
 ```
 
 Configuration
@@ -115,6 +107,15 @@ My::Application.config.session_store :redis_session_store, {
 
 **Note** The session will *always* be destroyed when it cannot be loaded.
 
+Rails 2 Compatibility
+---------------------
+
+This gem is currently only compatible with Rails 3+.  If you need
+Rails 2 compatibility, be sure to pin to a lower version like so:
+
+``` ruby
+gem 'redis-session-store', '< 0.3'
+```
 Contributing, Authors, & License
 --------------------------------
 
