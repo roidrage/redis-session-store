@@ -43,7 +43,7 @@ See `lib/redis-session-store.rb` for a list of valid options.
 In your Rails app, throw in an initializer with the following contents:
 
 ``` ruby
-My::Application.config.session_store = :redis_session_store, {
+My::Application.config.session_store :redis_session_store, {
   key: 'your_session_key',
   redis: {
     db: 2,
@@ -62,7 +62,7 @@ collides with an existing session ID, a custom callable handler may be
 provided as `on_sid_collision`:
 
 ``` ruby
-My::Application.config.session_store = :redis_session_store, {
+My::Application.config.session_store :redis_session_store, {
   # ... other options ...
   on_sid_collision: ->(sid) { Rails.logger.warn("SID collision! #{sid}") }
 }
@@ -74,7 +74,7 @@ If you want to handle cases where Redis is unavailable, a custom
 callable handler may be provided as `on_redis_down`:
 
 ``` ruby
-My::Application.config.session_store = :redis_session_store, {
+My::Application.config.session_store :redis_session_store, {
   # ... other options ...
   on_redis_down: ->(e, env, sid) { do_something_will_ya!(e) }
 }
@@ -91,7 +91,7 @@ custom serializer:
 * `CustomClass` - You can just pass the constant name of any class that responds to `.load` and `.dump`
 
 ``` ruby
-My::Application.config.session_store = :redis_session_store, {
+My::Application.config.session_store :redis_session_store, {
   # ... other options ...
   serializer: :hybrid
 }
@@ -107,7 +107,7 @@ custom callable handler may be provided as `on_session_load_error` which
 will be given the error and the session ID.
 
 ``` ruby
-My::Application.config.session_store = :redis_session_store, {
+My::Application.config.session_store :redis_session_store, {
   # ... other options ...
   on_session_load_error: ->(e, sid) { do_something_will_ya!(e) }
 }

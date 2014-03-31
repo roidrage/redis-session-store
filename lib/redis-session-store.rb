@@ -21,7 +21,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #
   # ==== Examples
   #
-  #     My::Application.config.session_store = :redis_session_store, {
+  #     My::Application.config.session_store :redis_session_store, {
   #       key: 'your_session_key',
   #       redis: {
   #         db: 2,
