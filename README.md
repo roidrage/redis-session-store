@@ -3,6 +3,7 @@ Redis Session Store
 
 [![Build Status](https://travis-ci.org/roidrage/redis-session-store.png?branch=master)](https://travis-ci.org/roidrage/redis-session-store)
 [![Code Climate](https://codeclimate.com/github/roidrage/redis-session-store.png)](https://codeclimate.com/github/roidrage/redis-session-store)
+[![Gem Version](https://badge.fury.io/rb/redis-session-store.png)](http://badge.fury.io/rb/redis-session-store)
 
 A simple Redis-based session store for Rails.  But why, you ask,
 when there's [redis-store](http://github.com/jodosha/redis-store/)?
