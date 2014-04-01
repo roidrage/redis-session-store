@@ -12,4 +12,4 @@ FileName:
 # Offense count: 1
 # Configuration parameters: CountComments.
 ClassLength:
-  Max: 103
+  Max: 110
