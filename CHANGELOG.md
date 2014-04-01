@@ -1,6 +1,13 @@
 redis-session-store history
 ===========================
 
+## v0.6.3 (2014-04-01)
+
+* Reverting the `#setnx` change in `0.6.2` as it behaved badly under
+  load, hitting yet another race condition issue and pegging the CPU.
+* Setting session ID with a multi-call `#setnx` and `#expire` instead of
+  `#setex`.
+
 ## v0.6.2 (2014-03-31)
 
 * Use `#setnx` instead of `#get` when checking for session ID
