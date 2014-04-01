@@ -1,6 +1,12 @@
 redis-session-store history
 ===========================
 
+## v0.6.2 (2014-03-31)
+
+* Use `#setnx` instead of `#get` when checking for session ID
+  collisions, which is slightly more paranoid and should help avoid a
+  particularly nasty edge case.
+
 ## v0.6.1 (2014-03-17)
 
 * Fix compatibility with `ActionDispatch::Request::Session::Options`
