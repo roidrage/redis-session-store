@@ -76,7 +76,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def sid_collision?(sid)
-    !!redis.setnx(prefixed(sid), nil).tap do |value| # rubocop: disable DoubleNegation, LineLength
+    !!redis.get(prefixed(sid)).tap do |value| # rubocop: disable DoubleNegation
       on_sid_collision.call(sid) if value && on_sid_collision
     end
   end
@@ -108,10 +108,11 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     serializer.load(data)
   end
 
-  def set_session(env, sid, session_data, options = nil)
+  def set_session(env, sid, session_data, options = nil) # rubocop: disable MethodLength, LineLength
     expiry = (options || env[ENV_SESSION_OPTIONS_KEY])[:expire_after]
     if expiry
-      redis.setex(prefixed(sid), expiry, encode(session_data))
+      redis.setnx(prefixed(sid), encode(session_data))
+      redis.expire(prefixed(sid), expiry)
     else
       redis.set(prefixed(sid), encode(session_data))
     end
