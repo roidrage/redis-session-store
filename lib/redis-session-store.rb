@@ -177,8 +177,6 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
       end
     end
 
-    private
-
     def self.needs_migration?(value)
       value.start_with?(MARSHAL_SIGNATURE)
     end
