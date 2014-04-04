@@ -1,6 +1,10 @@
 redis-session-store history
 ===========================
 
+## v0.6.4 (2014-04-04)
+
+* Reverting `setnx` usage in v0.6.3 so we can change our sessions.
+
 ## v0.6.3 (2014-04-01)
 
 * Reverting the `#setnx` change in `0.6.2` as it behaved badly under
