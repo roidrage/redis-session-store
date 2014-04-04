@@ -450,4 +450,30 @@ describe RedisSessionStore do
       end
     end
   end
+
+  describe 'setting the session' do
+    it 'allows changing the session' do
+      env = { 'rack.session.options' => {} }
+      sid = 1234
+      store.stub(:redis).and_return(Redis.new)
+      data1 = { 'foo' => 'bar' }
+      store.send(:set_session, env, sid, data1)
+      data2 = { 'baz' => 'wat' }
+      store.send(:set_session, env, sid, data2)
+      _, session = store.send(:get_session, env, sid)
+      expect(session).to eq(data2)
+    end
+
+    it 'allows changing the session when the session has an expiry' do
+      env = { 'rack.session.options' => { expire_after: 60 } }
+      sid = 1234
+      store.stub(:redis).and_return(Redis.new)
+      data1 = { 'foo' => 'bar' }
+      store.send(:set_session, env, sid, data1)
+      data2 = { 'baz' => 'wat' }
+      store.send(:set_session, env, sid, data2)
+      _, session = store.send(:get_session, env, sid)
+      expect(session).to eq(data2)
+    end
+  end
 end

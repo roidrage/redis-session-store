@@ -111,10 +111,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   def set_session(env, sid, session_data, options = nil) # rubocop: disable MethodLength, LineLength
     expiry = (options || env.fetch(ENV_SESSION_OPTIONS_KEY))[:expire_after]
     if expiry
-      redis.multi do
-        redis.setnx(prefixed(sid), encode(session_data))
-        redis.expire(prefixed(sid), expiry)
-      end
+      redis.setex(prefixed(sid), expiry, encode(session_data))
     else
       redis.set(prefixed(sid), encode(session_data))
     end
