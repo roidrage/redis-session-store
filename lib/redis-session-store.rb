@@ -71,11 +71,11 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   def generate_sid
     loop do
       sid = super
-      break sid unless sid_collision?(sid)
+      break sid unless claim_sid_unless_collision(sid)
     end
   end
 
-  def sid_collision?(sid)
+  def claim_sid_unless_collision(sid)
     !!redis.get(prefixed(sid)).tap do |value| # rubocop: disable DoubleNegation
       redis.setnx(prefixed(sid), nil) if value.nil?
       on_sid_collision.call(sid) if value && on_sid_collision

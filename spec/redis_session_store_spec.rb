@@ -280,7 +280,7 @@ describe RedisSessionStore do
       end
 
       it 'passes the colliding sid to the collision handler' do
-        store.send(:sid_collision?, 'whatever')
+        store.send(:claim_sid_unless_collision, 'whatever')
         expect(@sid).to eql('whatever')
       end
     end
