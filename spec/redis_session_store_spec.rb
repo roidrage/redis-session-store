@@ -284,6 +284,22 @@ describe RedisSessionStore do
         expect(@sid).to eql('whatever')
       end
     end
+
+    it 'does not allow two processes to get the same sid' do
+      redis = Redis.new
+      store1 = RedisSessionStore.new(nil, options)
+      store1.stub(redis: redis)
+      store2 = RedisSessionStore.new(nil, options)
+      store2.stub(redis: redis)
+
+      # While this is stubbing out a method defined in spec/support.rb,
+      # Rails does use SecureRandom for the random string
+      store1.stub(:rand).and_return(1000)
+      store2.stub(:rand).and_return(1000, 1001)
+
+      expect(store1.send(:generate_sid)).to eq('3e8')
+      expect(store2.send(:generate_sid)).to eq('3e9')
+    end
   end
 
   describe 'session encoding' do
