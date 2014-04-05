@@ -1,6 +1,11 @@
 redis-session-store history
 ===========================
 
+## v0.6.5 (2014-04-04)
+
+* Fix issue #36, use setnx to get a new session id instead of get. This
+  prevents a very rare id collision.
+
 ## v0.6.4 (2014-04-04)
 
 * Reverting `setnx` usage in v0.6.3 so we can change our sessions.
