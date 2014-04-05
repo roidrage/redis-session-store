@@ -76,8 +76,8 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def sid_collision?(sid)
-    !!redis.get(prefixed(sid)).tap do |value| # rubocop: disable DoubleNegation
-      on_sid_collision.call(sid) if value && on_sid_collision
+    !redis.setnx(prefixed(sid), nil).tap do |value|
+      on_sid_collision.call(sid) if !value && on_sid_collision
     end
   end
 

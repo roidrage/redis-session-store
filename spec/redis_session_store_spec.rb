@@ -249,7 +249,7 @@ describe RedisSessionStore do
 
     context 'when destroyed via #destroy_session' do
       it 'deletes the prefixed key from redis' do
-        redis = double('redis', get: nil)
+        redis = double('redis', setnx: true)
         store.stub(redis: redis)
         sid = store.send(:generate_sid)
         expect(redis).to receive(:del).with("#{options[:key_prefix]}#{sid}")
@@ -264,18 +264,23 @@ describe RedisSessionStore do
 
     context 'when the generated sid is unique' do
       before do
-        redis = double('redis', get: nil)
+        redis = double('redis', setnx: true)
         store.stub(redis: redis)
       end
 
       it 'returns the sid' do
         expect(store.send(:generate_sid)).to_not be_nil
       end
+
+      it 'does not pass the unique sid to the collision handler' do
+        store.send(:sid_collision?, 'whatever')
+        expect(@sid).to eql(nil)
+      end
     end
 
     context 'when there is a generated sid collision' do
       before do
-        redis = double('redis', get: 'herp a derp')
+        redis = double('redis', setnx: false)
         store.stub(redis: redis)
       end
 
