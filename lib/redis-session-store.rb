@@ -5,6 +5,10 @@ require 'redis'
 # the MemCacheStore code, simply dropping in Redis instead.
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
   VERSION = '0.6.5'
+  # Rails 3.1 and beyond defines the constant elsewhere
+  unless defined?(ENV_SESSION_OPTIONS_KEY)
+    ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY
+  end
 
   # ==== Options
   # * +:key+ - Same as with the other cookie stores, key name
