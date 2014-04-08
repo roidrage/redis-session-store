@@ -1,7 +1,17 @@
 # vim:fileencoding=utf-8
 
+unless defined?(Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY)
+  module Rack # rubocop:disable Documentation
+    module Session
+      module Abstract # rubocop:disable Documentation
+        ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
+      end
+    end
+  end
+end
+
 unless defined?(ActionDispatch::Session::AbstractStore)
-  module ActionDispatch
+  module ActionDispatch # rubocop:disable Documentation
     module Session
       class AbstractStore # rubocop:disable Documentation
         ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
