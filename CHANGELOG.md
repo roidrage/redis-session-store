@@ -1,6 +1,11 @@
 redis-session-store history
 ===========================
 
+## v0.6.6 (2014-04-08)
+
+* Fix issue #37, use correct constant for `ENV_SESSION_OPTIONS_KEY` if not
+  passed.
+
 ## v0.6.5 (2014-04-04)
 
 * Fix issue #36, use setnx to get a new session id instead of get. This
