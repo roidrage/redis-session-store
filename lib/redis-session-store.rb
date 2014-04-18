@@ -57,6 +57,17 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   attr_reader :redis, :key, :default_options, :serializer
 
+  # overrides method defined in rack to actually verify session existence
+  # Prevents needless new sessions from being created in scenario where
+  # user HAS session id, but it already expired, or is invalid for some
+  # other reason, and session was accessed only for reading.
+  def session_exists?(env)
+    value = current_session_id(env)
+
+    value && !value.empty? &&
+      redis.exists(prefixed(value)) # new behavior
+  end
+
   def verify_handlers!
     %w(on_redis_down on_session_load_error).each do |h|
       if (handler = public_send(h)) && !handler.respond_to?(:call)
