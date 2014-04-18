@@ -259,54 +259,6 @@ describe RedisSessionStore do
     end
   end
 
-  describe 'generating a sid' do
-    before { store.on_sid_collision = ->(sid) { @sid = sid } }
-
-    context 'when the generated sid is unique' do
-      before do
-        redis = double('redis', setnx: true)
-        store.stub(redis: redis)
-      end
-
-      it 'returns the sid' do
-        expect(store.send(:generate_sid)).to_not be_nil
-      end
-
-      it 'does not pass the unique sid to the collision handler' do
-        store.send(:sid_collision?, 'whatever')
-        expect(@sid).to eql(nil)
-      end
-    end
-
-    context 'when there is a generated sid collision' do
-      before do
-        redis = double('redis', setnx: false)
-        store.stub(redis: redis)
-      end
-
-      it 'passes the colliding sid to the collision handler' do
-        store.send(:sid_collision?, 'whatever')
-        expect(@sid).to eql('whatever')
-      end
-    end
-
-    it 'does not allow two processes to get the same sid' do
-      redis = Redis.new
-      store1 = RedisSessionStore.new(nil, options)
-      store1.stub(redis: redis)
-      store2 = RedisSessionStore.new(nil, options)
-      store2.stub(redis: redis)
-
-      # While this is stubbing out a method defined in spec/support.rb,
-      # Rails does use SecureRandom for the random string
-      store1.stub(:rand).and_return(1000)
-      store2.stub(:rand).and_return(1000, 1001)
-
-      expect(store1.send(:generate_sid)).to eq('3e8')
-      expect(store2.send(:generate_sid)).to eq('3e9')
-    end
-  end
-
   describe 'session encoding' do
     let(:env)          { double('env') }
     let(:session_id)   { 12_345 }
@@ -447,7 +399,7 @@ describe RedisSessionStore do
   end
 
   describe 'validating custom handlers' do
-    %w(on_redis_down on_sid_collision on_session_load_error).each do |h|
+    %w(on_redis_down on_session_load_error).each do |h|
       context 'when nil' do
         it 'does not explode at init' do
           expect { store }.to_not raise_error
