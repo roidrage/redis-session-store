@@ -66,6 +66,10 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
     value && !value.empty? &&
       redis.exists(prefixed(value)) # new behavior
+  rescue Errno::ECONNREFUSED => e
+    on_redis_down.call(e, env, value) if on_redis_down
+
+    true
   end
 
   def verify_handlers!

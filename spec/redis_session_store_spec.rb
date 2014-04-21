@@ -163,6 +163,60 @@ describe RedisSessionStore do
     end
   end
 
+  describe 'checking for session existence' do
+    let(:session_id) { 'foo' }
+
+    before do
+      store.stub(:current_session_id).with(:env).and_return(session_id)
+    end
+
+    context 'when session id is not provided' do
+      context 'when session id is nil' do
+        let(:session_id) { nil }
+        it 'should return false' do
+          store.send(:session_exists?, :env).should be_false
+        end
+      end
+
+      context 'when session id is empty string' do
+        let(:session_id) { '' }
+        it 'should return false' do
+          store.stub(:current_session_id).with(:env).and_return('')
+          store.send(:session_exists?, :env).should be_false
+        end
+      end
+    end
+
+    context 'when session id is provided' do
+      let(:redis) {
+        double('redis').tap { |o|
+          store.stub(:redis).and_return(o)
+        }
+      }
+
+      context 'when session id does not exist in redis' do
+        it 'should return false' do
+          redis.should_receive(:exists).with('foo').and_return(false)
+          store.send(:session_exists?, :env).should be_false
+        end
+      end
+
+      context 'when session id exists in redis' do
+        it 'should return true' do
+          redis.should_receive(:exists).with('foo').and_return(true)
+          store.send(:session_exists?, :env).should be_true
+        end
+      end
+
+      context 'when redis is down' do
+        it 'should return true (fallback to old behavior)' do
+          store.stub(:redis).and_raise(Errno::ECONNREFUSED)
+          store.send(:session_exists?, :env).should be_true
+        end
+      end
+    end
+  end
+
   describe 'fetching a session' do
     let :options do
       {
