@@ -18,7 +18,6 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #   * +:db+ - Database number, defaults to 0.
   #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
   #   * +:expire_after+ - A number in seconds for session timeout
-  # * +:on_sid_collision:+ - Called with SID string when generated SID collides
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
   # * +:on_session_load_error:+ - Called with err and SID on Marshal.load fail
   # * +:serializer:+ - Serializer to use on session data, default is :marshal.
@@ -34,7 +33,6 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #         host: 'host', # Redis host name, default is localhost
   #         port: 12345   # Redis port, default is 6379
   #       },
-  #       on_sid_collision: ->(sid) { logger.warn("SID collision! #{sid}") },
   #       on_redis_down: ->(*a) { logger.error("Redis down! #{a.inspect}") }
   #       serializer: :hybrid # migrate from Marshal to JSON
   #     }
@@ -47,21 +45,35 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @default_options.merge!(namespace: 'rack:session')
     @default_options.merge!(redis_options)
     @redis = Redis.new(redis_options)
-    @on_sid_collision = options[:on_sid_collision]
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
     @on_session_load_error = options[:on_session_load_error]
     verify_handlers!
   end
 
-  attr_accessor :on_sid_collision, :on_redis_down, :on_session_load_error
+  attr_accessor :on_redis_down, :on_session_load_error
 
   private
 
   attr_reader :redis, :key, :default_options, :serializer
 
+  # overrides method defined in rack to actually verify session existence
+  # Prevents needless new sessions from being created in scenario where
+  # user HAS session id, but it already expired, or is invalid for some
+  # other reason, and session was accessed only for reading.
+  def session_exists?(env)
+    value = current_session_id(env)
+
+    value && !value.empty? &&
+      redis.exists(prefixed(value)) # new behavior
+  rescue Errno::ECONNREFUSED => e
+    on_redis_down.call(e, env, value) if on_redis_down
+
+    true
+  end
+
   def verify_handlers!
-    %w(on_sid_collision on_redis_down on_session_load_error).each do |h|
+    %w(on_redis_down on_session_load_error).each do |h|
       if (handler = public_send(h)) && !handler.respond_to?(:call)
         fail ArgumentError, "#{h} handler is not callable"
       end
@@ -70,19 +82,6 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def prefixed(sid)
     "#{default_options[:key_prefix]}#{sid}"
-  end
-
-  def generate_sid
-    loop do
-      sid = super
-      break sid unless sid_collision?(sid)
-    end
-  end
-
-  def sid_collision?(sid)
-    !redis.setnx(prefixed(sid), nil).tap do |value|
-      on_sid_collision.call(sid) if !value && on_sid_collision
-    end
   end
 
   def get_session(env, sid)

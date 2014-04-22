@@ -48,19 +48,6 @@ My::Application.config.session_store :redis_session_store, {
 }
 ```
 
-### Session ID collision handling
-
-If you want to handle cases where the generated session ID (sid)
-collides with an existing session ID, a custom callable handler may be
-provided as `on_sid_collision`:
-
-``` ruby
-My::Application.config.session_store :redis_session_store, {
-  # ... other options ...
-  on_sid_collision: ->(sid) { Rails.logger.warn("SID collision! #{sid}") }
-}
-```
-
 ### Redis unavailability handling
 
 If you want to handle cases where Redis is unavailable, a custom

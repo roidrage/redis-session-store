@@ -163,6 +163,56 @@ describe RedisSessionStore do
     end
   end
 
+  describe 'checking for session existence' do
+    let(:session_id) { 'foo' }
+
+    before do
+      store.stub(:current_session_id).with(:env).and_return(session_id)
+    end
+
+    context 'when session id is not provided' do
+      context 'when session id is nil' do
+        let(:session_id) { nil }
+        it 'should return false' do
+          store.send(:session_exists?, :env).should be_false
+        end
+      end
+
+      context 'when session id is empty string' do
+        let(:session_id) { '' }
+        it 'should return false' do
+          store.stub(:current_session_id).with(:env).and_return('')
+          store.send(:session_exists?, :env).should be_false
+        end
+      end
+    end
+
+    context 'when session id is provided' do
+      let(:redis) { double('redis').tap { |o| store.stub(redis: o) } }
+
+      context 'when session id does not exist in redis' do
+        it 'should return false' do
+          redis.should_receive(:exists).with('foo').and_return(false)
+          store.send(:session_exists?, :env).should be_false
+        end
+      end
+
+      context 'when session id exists in redis' do
+        it 'should return true' do
+          redis.should_receive(:exists).with('foo').and_return(true)
+          store.send(:session_exists?, :env).should be_true
+        end
+      end
+
+      context 'when redis is down' do
+        it 'should return true (fallback to old behavior)' do
+          store.stub(:redis).and_raise(Errno::ECONNREFUSED)
+          store.send(:session_exists?, :env).should be_true
+        end
+      end
+    end
+  end
+
   describe 'fetching a session' do
     let :options do
       {
@@ -256,54 +306,6 @@ describe RedisSessionStore do
 
         store.send(:destroy_session, {}, sid, nil)
       end
-    end
-  end
-
-  describe 'generating a sid' do
-    before { store.on_sid_collision = ->(sid) { @sid = sid } }
-
-    context 'when the generated sid is unique' do
-      before do
-        redis = double('redis', setnx: true)
-        store.stub(redis: redis)
-      end
-
-      it 'returns the sid' do
-        expect(store.send(:generate_sid)).to_not be_nil
-      end
-
-      it 'does not pass the unique sid to the collision handler' do
-        store.send(:sid_collision?, 'whatever')
-        expect(@sid).to eql(nil)
-      end
-    end
-
-    context 'when there is a generated sid collision' do
-      before do
-        redis = double('redis', setnx: false)
-        store.stub(redis: redis)
-      end
-
-      it 'passes the colliding sid to the collision handler' do
-        store.send(:sid_collision?, 'whatever')
-        expect(@sid).to eql('whatever')
-      end
-    end
-
-    it 'does not allow two processes to get the same sid' do
-      redis = Redis.new
-      store1 = RedisSessionStore.new(nil, options)
-      store1.stub(redis: redis)
-      store2 = RedisSessionStore.new(nil, options)
-      store2.stub(redis: redis)
-
-      # While this is stubbing out a method defined in spec/support.rb,
-      # Rails does use SecureRandom for the random string
-      store1.stub(:rand).and_return(1000)
-      store2.stub(:rand).and_return(1000, 1001)
-
-      expect(store1.send(:generate_sid)).to eq('3e8')
-      expect(store2.send(:generate_sid)).to eq('3e9')
     end
   end
 
@@ -447,7 +449,7 @@ describe RedisSessionStore do
   end
 
   describe 'validating custom handlers' do
-    %w(on_redis_down on_sid_collision on_session_load_error).each do |h|
+    %w(on_redis_down on_session_load_error).each do |h|
       context 'when nil' do
         it 'does not explode at init' do
           expect { store }.to_not raise_error
