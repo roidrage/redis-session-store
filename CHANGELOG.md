@@ -1,6 +1,12 @@
 redis-session-store history
 ===========================
 
+## v0.7.0 (2014-04-22)
+
+* Fix issue #38, we now delay writing to redis until a session exists. This is
+  a backwards-incompatible change, as it removes the `on_sid_collision` option.
+  There is now no checking for sid collisions, however that is very unlikely.
+
 ## v0.6.6 (2014-04-08)
 
 * Fix issue #37, use correct constant for `ENV_SESSION_OPTIONS_KEY` if not
