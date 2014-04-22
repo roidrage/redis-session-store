@@ -188,11 +188,7 @@ describe RedisSessionStore do
     end
 
     context 'when session id is provided' do
-      let(:redis) {
-        double('redis').tap { |o|
-          store.stub(:redis).and_return(o)
-        }
-      }
+      let(:redis) { double('redis').tap { |o| store.stub(redis: o) } }
 
       context 'when session id does not exist in redis' do
         it 'should return false' do
