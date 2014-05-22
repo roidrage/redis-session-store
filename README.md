@@ -18,12 +18,12 @@ see fit.
 This library doesn't offer anything related to caching, and is
 only suitable for Rails applications. For other frameworks or
 drop-in support for caching, check out
-[redis-store](http://github.com/jodosha/redis-store/)
+[redis-store](http://github.com/jodosha/redis-store/).
 
 Installation
 ------------
 
-For Rails 3+, adding this to your Gemfile will do the trick.
+For Rails 3+, adding this to your `Gemfile` will do the trick.
 
 ``` ruby
 gem 'redis-session-store'
@@ -78,7 +78,7 @@ My::Application.config.session_store :redis_session_store, {
 ```
 
 **Note**: Rails 4 is required for using the `:json` and `:hybrid` serializers
-because the `Flash` object doesn't serializer well in 3.2. See [Rails #13945](https://github.com/rails/rails/pull/13945) for more info.
+because the `Flash` object doesn't serialize well in 3.2. See [Rails #13945](https://github.com/rails/rails/pull/13945) for more info.
 
 ### Session load error handling
 
