@@ -74,9 +74,9 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def verify_handlers!
     %w(on_redis_down on_session_load_error).each do |h|
-      if (handler = public_send(h)) && !handler.respond_to?(:call)
-        fail ArgumentError, "#{h} handler is not callable"
-      end
+      next unless (handler = public_send(h)) && !handler.respond_to?(:call)
+
+      fail ArgumentError, "#{h} handler is not callable"
     end
   end
 

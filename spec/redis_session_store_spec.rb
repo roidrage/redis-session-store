@@ -138,7 +138,7 @@ describe RedisSessionStore do
     context 'when redis is down' do
       before do
         store.stub(:redis).and_raise(Errno::ECONNREFUSED)
-        store.on_redis_down = ->(*a) { @redis_down_handled = true }
+        store.on_redis_down = ->(*_a) { @redis_down_handled = true }
       end
 
       it 'returns false' do
@@ -364,11 +364,11 @@ describe RedisSessionStore do
     context 'custom' do
       let :custom_serializer do
         Class.new do
-          def self.load(value)
+          def self.load(_value)
             { 'some' => 'data' }
           end
 
-          def self.dump(value)
+          def self.dump(_value)
             'somedata'
           end
         end

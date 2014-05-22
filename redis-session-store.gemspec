@@ -4,7 +4,7 @@ Gem::Specification.new do |gem|
   gem.name = 'redis-session-store'
   gem.authors = ['Mathias Meyer']
   gem.email = ['meyer@paperplanes.de']
-  gem.summary = 'A drop-in replacement for e.g. MemCacheStore to ' <<
+  gem.summary = 'A drop-in replacement for e.g. MemCacheStore to ' \
                 'store Rails sessions (and Rails sessions only) in Redis.'
   gem.description = gem.summary
   gem.homepage = 'https://github.com/roidrage/redis-session-store'
