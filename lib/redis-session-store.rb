@@ -45,9 +45,9 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @default_options.merge!(namespace: 'rack:session')
     @default_options.merge!(redis_options)
     @redis = Redis.new(redis_options)
-    @on_redis_down = options[:on_redis_down]
-    @serializer = determine_serializer(options[:serializer])
-    @on_session_load_error = options[:on_session_load_error]
+    @on_redis_down = redis_options[:on_redis_down]
+    @serializer = determine_serializer(redis_options[:serializer])
+    @on_session_load_error = redis_options[:on_session_load_error]
     verify_handlers!
   end
 
