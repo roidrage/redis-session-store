@@ -98,6 +98,38 @@ describe RedisSessionStore do
     end
   end
 
+  describe 'when initializing with existing redis object' do
+    let :options do
+      {
+        key: random_string,
+        secret: random_string,
+        redis: {
+          client: redis_client,
+          key_prefix: 'myapp:session:',
+          expire_after: 60 * 30
+        }
+      }
+    end
+
+    let(:redis_client) { double('redis_client') }
+
+    it 'assigns given redis object to @redis' do
+      store.instance_variable_get(:@redis).should be(redis_client)
+    end
+
+    it 'assigns the :client option to @default_options' do
+      default_options[:client].should be(redis_client)
+    end
+
+    it 'assigns the :key_prefix option to @default_options' do
+      default_options[:key_prefix].should == 'myapp:session:'
+    end
+
+    it 'assigns the :expire_after option to @default_options' do
+      default_options[:expire_after].should == 60 * 30
+    end
+  end
+
   describe 'rack 1.45 compatibility' do
     # Rack 1.45 (which Rails 3.2.x depends on) uses the return value of
     # set_session to set the cookie value.  See:
