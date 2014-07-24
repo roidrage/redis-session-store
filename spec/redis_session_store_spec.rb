@@ -104,21 +104,21 @@ describe RedisSessionStore do
         key: random_string,
         secret: random_string,
         redis: {
-          redis_object: redis_object,
+          client: redis_client,
           key_prefix: 'myapp:session:',
           expire_after: 60 * 30
         }
       }
     end
 
-    let(:redis_object) { double('redis_object') }
+    let(:redis_client) { double('redis_client') }
 
     it 'assigns given redis object to @redis' do
-      store.instance_variable_get(:@redis).should be(redis_object)
+      store.instance_variable_get(:@redis).should be(redis_client)
     end
 
-    it 'assigns the :redis_object option to @default_options' do
-      default_options[:redis_object].should be(redis_object)
+    it 'assigns the :client option to @default_options' do
+      default_options[:client].should be(redis_client)
     end
 
     it 'assigns the :key_prefix option to @default_options' do
