@@ -1,6 +1,12 @@
 redis-session-store history
 ===========================
 
+## v0.8.0 (2014-08-28)
+
+* Allow for injection of custom redis client
+* Explicitly declare actionpack dependency
+* Spec updates for rspec 3
+
 ## v0.7.0 (2014-04-22)
 
 * Fix issue #38, we now delay writing to redis until a session exists. This is
