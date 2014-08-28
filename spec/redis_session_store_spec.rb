@@ -17,7 +17,7 @@ describe RedisSessionStore do
   end
 
   it 'assigns a :namespace to @default_options' do
-    default_options[:namespace].should == 'rack:session'
+    expect(default_options[:namespace]).to eq('rack:session')
   end
 
   describe 'when initializing with the redis sub-hash options' do
@@ -36,27 +36,27 @@ describe RedisSessionStore do
     end
 
     it 'creates a redis instance' do
-      store.instance_variable_get(:@redis).should_not be_nil
+      expect(store.instance_variable_get(:@redis)).to_not be_nil
     end
 
     it 'assigns the :host option to @default_options' do
-      default_options[:host].should == 'hosty.local'
+      expect(default_options[:host]).to eq('hosty.local')
     end
 
     it 'assigns the :port option to @default_options' do
-      default_options[:port].should == 16_379
+      expect(default_options[:port]).to eq(16_379)
     end
 
     it 'assigns the :db option to @default_options' do
-      default_options[:db].should == 2
+      expect(default_options[:db]).to eq(2)
     end
 
     it 'assigns the :key_prefix option to @default_options' do
-      default_options[:key_prefix].should == 'myapp:session:'
+      expect(default_options[:key_prefix]).to eq('myapp:session:')
     end
 
     it 'assigns the :expire_after option to @default_options' do
-      default_options[:expire_after].should == 60 * 120
+      expect(default_options[:expire_after]).to eq(60 * 120)
     end
   end
 
@@ -74,27 +74,27 @@ describe RedisSessionStore do
     end
 
     it 'creates a redis instance' do
-      store.instance_variable_get(:@redis).should_not be_nil
+      expect(store.instance_variable_get(:@redis)).to_not be_nil
     end
 
     it 'assigns the :host option to @default_options' do
-      default_options[:host].should == 'hostersons.local'
+      expect(default_options[:host]).to eq('hostersons.local')
     end
 
     it 'assigns the :port option to @default_options' do
-      default_options[:port].should == 26_379
+      expect(default_options[:port]).to eq(26_379)
     end
 
     it 'assigns the :db option to @default_options' do
-      default_options[:db].should == 4
+      expect(default_options[:db]).to eq(4)
     end
 
     it 'assigns the :key_prefix option to @default_options' do
-      default_options[:key_prefix].should == 'appydoo:session:'
+      expect(default_options[:key_prefix]).to eq('appydoo:session:')
     end
 
     it 'assigns the :expire_after option to @default_options' do
-      default_options[:expire_after].should == 60 * 60
+      expect(default_options[:expire_after]).to eq(60 * 60)
     end
   end
 
@@ -114,19 +114,19 @@ describe RedisSessionStore do
     let(:redis_client) { double('redis_client') }
 
     it 'assigns given redis object to @redis' do
-      store.instance_variable_get(:@redis).should be(redis_client)
+      expect(store.instance_variable_get(:@redis)).to be(redis_client)
     end
 
     it 'assigns the :client option to @default_options' do
-      default_options[:client].should be(redis_client)
+      expect(default_options[:client]).to be(redis_client)
     end
 
     it 'assigns the :key_prefix option to @default_options' do
-      default_options[:key_prefix].should == 'myapp:session:'
+      expect(default_options[:key_prefix]).to eq('myapp:session:')
     end
 
     it 'assigns the :expire_after option to @default_options' do
-      default_options[:expire_after].should == 60 * 30
+      expect(default_options[:expire_after]).to eq(60 * 30)
     end
   end
 
@@ -142,19 +142,19 @@ describe RedisSessionStore do
 
     context 'when successfully persisting the session' do
       it 'returns the session id' do
-        store.send(:set_session, env, session_id, session_data, options)
-          .should eq(session_id)
+        expect(store.send(:set_session, env, session_id, session_data, options))
+          .to eq(session_id)
       end
     end
 
     context 'when unsuccessfully persisting the session' do
       before do
-        store.stub(:redis).and_raise(Errno::ECONNREFUSED)
+        allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
       end
 
       it 'returns false' do
-        store.send(:set_session, env, session_id, session_data, options)
-          .should eq(false)
+        expect(store.send(:set_session, env, session_id, session_data, options))
+          .to eq(false)
       end
     end
 
@@ -162,25 +162,25 @@ describe RedisSessionStore do
       let(:options) { {} }
 
       it 'sets the session value without expiry' do
-        store.send(:set_session, env, session_id, session_data, options)
-          .should eq(session_id)
+        expect(store.send(:set_session, env, session_id, session_data, options))
+          .to eq(session_id)
       end
     end
 
     context 'when redis is down' do
       before do
-        store.stub(:redis).and_raise(Errno::ECONNREFUSED)
+        allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
         store.on_redis_down = ->(*_a) { @redis_down_handled = true }
       end
 
       it 'returns false' do
-        store.send(:set_session, env, session_id, session_data, options)
-          .should eq(false)
+        expect(store.send(:set_session, env, session_id, session_data, options))
+          .to eq(false)
       end
 
       it 'calls the on_redis_down handler' do
         store.send(:set_session, env, session_id, session_data, options)
-        expect(@redis_down_handled).to be_true
+        expect(@redis_down_handled).to eq(true)
       end
 
       context 'when :on_redis_down re-raises' do
@@ -199,47 +199,52 @@ describe RedisSessionStore do
     let(:session_id) { 'foo' }
 
     before do
-      store.stub(:current_session_id).with(:env).and_return(session_id)
+      allow(store).to receive(:current_session_id)
+        .with(:env).and_return(session_id)
     end
 
     context 'when session id is not provided' do
       context 'when session id is nil' do
         let(:session_id) { nil }
-        it 'should return false' do
-          store.send(:session_exists?, :env).should be_false
+        it 'returns false' do
+          expect(store.send(:session_exists?, :env)).to eq(false)
         end
       end
 
       context 'when session id is empty string' do
         let(:session_id) { '' }
-        it 'should return false' do
-          store.stub(:current_session_id).with(:env).and_return('')
-          store.send(:session_exists?, :env).should be_false
+        it 'returns false' do
+          allow(store).to receive(:current_session_id).with(:env).and_return('')
+          expect(store.send(:session_exists?, :env)).to eq(false)
         end
       end
     end
 
     context 'when session id is provided' do
-      let(:redis) { double('redis').tap { |o| store.stub(redis: o) } }
+      let(:redis) do
+        double('redis').tap do |o|
+          allow(store).to receive(:redis).and_return(o)
+        end
+      end
 
       context 'when session id does not exist in redis' do
-        it 'should return false' do
-          redis.should_receive(:exists).with('foo').and_return(false)
-          store.send(:session_exists?, :env).should be_false
+        it 'returns false' do
+          expect(redis).to receive(:exists).with('foo').and_return(false)
+          expect(store.send(:session_exists?, :env)).to eq(false)
         end
       end
 
       context 'when session id exists in redis' do
-        it 'should return true' do
-          redis.should_receive(:exists).with('foo').and_return(true)
-          store.send(:session_exists?, :env).should be_true
+        it 'returns true' do
+          expect(redis).to receive(:exists).with('foo').and_return(true)
+          expect(store.send(:session_exists?, :env)).to eq(true)
         end
       end
 
       context 'when redis is down' do
-        it 'should return true (fallback to old behavior)' do
-          store.stub(:redis).and_raise(Errno::ECONNREFUSED)
-          store.send(:session_exists?, :env).should be_true
+        it 'returns true (fallback to old behavior)' do
+          allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
+          expect(store.send(:session_exists?, :env)).to eq(true)
         end
       end
     end
@@ -254,10 +259,10 @@ describe RedisSessionStore do
 
     let(:fake_key) { 'thisisarediskey' }
 
-    it 'should retrieve the prefixed key from redis' do
+    it 'retrieves the prefixed key from redis' do
       redis = double('redis')
-      store.stub(redis: redis)
-      store.stub(generate_sid: fake_key)
+      allow(store).to receive(:redis).and_return(redis)
+      allow(store).to receive(:generate_sid).and_return(fake_key)
       expect(redis).to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
 
       store.send(:get_session, double('env'), fake_key)
@@ -265,8 +270,8 @@ describe RedisSessionStore do
 
     context 'when redis is down' do
       before do
-        store.stub(:redis).and_raise(Errno::ECONNREFUSED)
-        store.stub(generate_sid: 'foop')
+        allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
+        allow(store).to receive(:generate_sid).and_return('foop')
       end
 
       it 'returns an empty session hash' do
@@ -298,12 +303,12 @@ describe RedisSessionStore do
       let(:fake_key) { 'thisisarediskey' }
 
       before do
-        cookie_hash.stub(:[] => fake_key)
+        allow(cookie_hash).to receive(:[]).and_return(fake_key)
       end
 
       it 'deletes the prefixed key from redis' do
         redis = double('redis')
-        store.stub(redis: redis)
+        allow(store).to receive(:redis).and_return(redis)
         expect(redis).to receive(:del)
           .with("#{options[:key_prefix]}#{fake_key}")
 
@@ -311,10 +316,12 @@ describe RedisSessionStore do
       end
 
       context 'when redis is down' do
-        before { store.stub(:redis).and_raise(Errno::ECONNREFUSED) }
+        before do
+          allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
+        end
 
-        it 'should return false' do
-          expect(store.send(:destroy, env)).to be_false
+        it 'returns false' do
+          expect(store.send(:destroy, env)).to eq(false)
         end
 
         context 'when :on_redis_down re-raises' do
@@ -332,7 +339,7 @@ describe RedisSessionStore do
     context 'when destroyed via #destroy_session' do
       it 'deletes the prefixed key from redis' do
         redis = double('redis', setnx: true)
-        store.stub(redis: redis)
+        allow(store).to receive(:redis).and_return(redis)
         sid = store.send(:generate_sid)
         expect(redis).to receive(:del).with("#{options[:key_prefix]}#{sid}")
 
@@ -351,12 +358,12 @@ describe RedisSessionStore do
     let(:expected_encoding) { encoded_data }
 
     before do
-      store.stub(:redis).and_return(redis)
+      allow(store).to receive(:redis).and_return(redis)
     end
 
     shared_examples_for 'serializer' do
       it 'encodes correctly' do
-        redis.should_receive(:set).with('12345', expected_encoding)
+        expect(redis).to receive(:set).with('12345', expected_encoding)
         store.send(:set_session, env, session_id, session_data, options)
       end
 
@@ -416,10 +423,10 @@ describe RedisSessionStore do
   describe 'handling decode errors' do
     context 'when a class is serialized that does not exist' do
       before do
-        store.stub(
-          redis: double('redis', get: "\x04\bo:\nNonExistentClass\x00",
-                                 del: true)
-        )
+        allow(store).to receive(:redis)
+          .and_return(double('redis',
+                             get: "\x04\bo:\nNonExistentClass\x00",
+                             del: true))
       end
 
       it 'returns an empty session' do
@@ -427,7 +434,8 @@ describe RedisSessionStore do
       end
 
       it 'destroys and drops the session' do
-        store.should_receive(:destroy_session_from_sid).with('wut', drop: true)
+        expect(store).to receive(:destroy_session_from_sid)
+          .with('wut', drop: true)
         store.send(:load_session_from_redis, 'wut')
       end
 
@@ -442,16 +450,15 @@ describe RedisSessionStore do
         it 'passes the error and the sid to the handler' do
           store.send(:load_session_from_redis, 'foo')
           expect(@e).to be_kind_of(StandardError)
-          expect(@sid).to eql('foo')
+          expect(@sid).to eq('foo')
         end
       end
     end
 
     context 'when the encoded data is invalid' do
       before do
-        store.stub(
-          redis: double('redis', get: "\x00\x00\x00\x00", del: true)
-        )
+        allow(store).to receive(:redis)
+          .and_return(double('redis', get: "\x00\x00\x00\x00", del: true))
       end
 
       it 'returns an empty session' do
@@ -459,7 +466,8 @@ describe RedisSessionStore do
       end
 
       it 'destroys and drops the session' do
-        store.should_receive(:destroy_session_from_sid).with('wut', drop: true)
+        expect(store).to receive(:destroy_session_from_sid)
+          .with('wut', drop: true)
         store.send(:load_session_from_redis, 'wut')
       end
 
@@ -474,7 +482,7 @@ describe RedisSessionStore do
         it 'passes the error and the sid to the handler' do
           store.send(:load_session_from_redis, 'foo')
           expect(@e).to be_kind_of(StandardError)
-          expect(@sid).to eql('foo')
+          expect(@sid).to eq('foo')
         end
       end
     end
@@ -510,7 +518,7 @@ describe RedisSessionStore do
     it 'allows changing the session' do
       env = { 'rack.session.options' => {} }
       sid = 1234
-      store.stub(:redis).and_return(Redis.new)
+      allow(store).to receive(:redis).and_return(Redis.new)
       data1 = { 'foo' => 'bar' }
       store.send(:set_session, env, sid, data1)
       data2 = { 'baz' => 'wat' }
@@ -522,7 +530,7 @@ describe RedisSessionStore do
     it 'allows changing the session when the session has an expiry' do
       env = { 'rack.session.options' => { expire_after: 60 } }
       sid = 1234
-      store.stub(:redis).and_return(Redis.new)
+      allow(store).to receive(:redis).and_return(Redis.new)
       data1 = { 'foo' => 'bar' }
       store.send(:set_session, env, sid, data1)
       data2 = { 'baz' => 'wat' }

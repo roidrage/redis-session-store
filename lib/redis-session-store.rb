@@ -65,8 +65,10 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   def session_exists?(env)
     value = current_session_id(env)
 
-    value && !value.empty? &&
-      redis.exists(prefixed(value)) # new behavior
+    !!(
+      value && !value.empty? &&
+      redis.exists(prefixed(value))
+    )
   rescue Errno::ECONNREFUSED => e
     on_redis_down.call(e, env, value) if on_redis_down
 

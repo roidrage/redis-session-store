@@ -12,4 +12,4 @@ task :coverage do
   Rake::Task['spec'].invoke
 end
 
-Rubocop::RakeTask.new
+RuboCop::RakeTask.new
