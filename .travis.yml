@@ -1,9 +1,13 @@
 ---
 language: ruby
+sudo: false
 rvm:
 - 1.9.3
-- 2.0.0
-- 2.1.0
+- 2.1.2
+- jruby-19mode
+matrix:
+  allow_failures:
+  - rvm: jruby-19mode
 notifications:
   email: false
 deploy:
@@ -14,5 +18,4 @@ deploy:
   on:
     tags: true
     repo: roidrage/redis-session-store
-    branch: master
-    rvm: 2.0.0
+    rvm: 2.1.2
