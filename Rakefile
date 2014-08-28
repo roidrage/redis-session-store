@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'bundler/gem_tasks'
 require 'rspec/core/rake_task'
 require 'rubocop/rake_task'
@@ -12,4 +13,4 @@ task :coverage do
   Rake::Task['spec'].invoke
 end
 
-Rubocop::RakeTask.new
+RuboCop::RakeTask.new

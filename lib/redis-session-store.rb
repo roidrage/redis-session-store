@@ -18,6 +18,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #   * +:db+ - Database number, defaults to 0.
   #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
   #   * +:expire_after+ - A number in seconds for session timeout
+  #   * +:client+ - Connect to Redis with given object rather than create one
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
   # * +:on_session_load_error:+ - Called with err and SID on Marshal.load fail
   # * +:serializer:+ - Serializer to use on session data, default is :marshal.
@@ -44,7 +45,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
     @default_options.merge!(namespace: 'rack:session')
     @default_options.merge!(redis_options)
-    @redis = Redis.new(redis_options)
+    @redis = redis_options[:client] || Redis.new(redis_options)
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
     @on_session_load_error = options[:on_session_load_error]
@@ -64,8 +65,10 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   def session_exists?(env)
     value = current_session_id(env)
 
-    value && !value.empty? &&
-      redis.exists(prefixed(value)) # new behavior
+    !!(
+      value && !value.empty? &&
+      redis.exists(prefixed(value))
+    )
   rescue Errno::ECONNREFUSED => e
     on_redis_down.call(e, env, value) if on_redis_down
 
