@@ -57,6 +57,9 @@ callable handler may be provided as `on_redis_down`:
 My::Application.config.session_store :redis_session_store, {
   # ... other options ...
   on_redis_down: ->(e, env, sid) { do_something_will_ya!(e) }
+  redis: {
+    # ... redis options ...
+  }
 }
 ```
 
@@ -74,6 +77,9 @@ custom serializer:
 My::Application.config.session_store :redis_session_store, {
   # ... other options ...
   serializer: :hybrid
+  redis: {
+    # ... redis options ...
+  }
 }
 ```
 
@@ -90,6 +96,9 @@ will be given the error and the session ID.
 My::Application.config.session_store :redis_session_store, {
   # ... other options ...
   on_session_load_error: ->(e, sid) { do_something_will_ya!(e) }
+  redis: {
+    # ... redis options ...
+  }
 }
 ```
 
