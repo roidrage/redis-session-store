@@ -5,7 +5,3 @@ FileName:
 
 DoubleNegation:
   Enabled: false
-
-Encoding:
-  Exclude:
-    - '**/Rakefile'
