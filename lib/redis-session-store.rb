@@ -1,9 +1,13 @@
 # vim:fileencoding=utf-8
 require 'redis'
+require 'redis_session_helpers'
 
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
+  
+  include RedisSessionHelpers
+
   VERSION = '0.8.0'
   # Rails 3.1 and beyond defines the constant elsewhere
   unless defined?(ENV_SESSION_OPTIONS_KEY)
@@ -18,7 +22,6 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #   * +:db+ - Database number, defaults to 0.
   #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
   #   * +:expire_after+ - A number in seconds for session timeout
-  #   * +:client+ - Connect to Redis with given object rather than create one
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
   # * +:on_session_load_error:+ - Called with err and SID on Marshal.load fail
   # * +:serializer:+ - Serializer to use on session data, default is :marshal.
@@ -45,7 +48,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
     @default_options.merge!(namespace: 'rack:session')
     @default_options.merge!(redis_options)
-    @redis = redis_options[:client] || Redis.new(redis_options)
+    @redis = Redis.new(redis_options)
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
     @on_session_load_error = options[:on_session_load_error]
@@ -65,10 +68,8 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   def session_exists?(env)
     value = current_session_id(env)
 
-    !!(
-      value && !value.empty? &&
-      redis.exists(prefixed(value))
-    )
+    value && !value.empty? &&
+      redis.exists(prefixed(value)) # new behavior
   rescue Errno::ECONNREFUSED => e
     on_redis_down.call(e, env, value) if on_redis_down
 
@@ -83,52 +84,18 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     end
   end
 
-  def prefixed(sid)
-    "#{default_options[:key_prefix]}#{sid}"
-  end
-
   def get_session(env, sid)
-    unless sid && (session = load_session_from_redis(sid))
-      sid = generate_sid
-      session = {}
-    end
-
-    [sid, session]
+    find_by_session_id(sid)
   rescue Errno::ECONNREFUSED => e
     on_redis_down.call(e, env, sid) if on_redis_down
     [generate_sid, {}]
   end
 
-  def load_session_from_redis(sid)
-    data = redis.get(prefixed(sid))
-    begin
-      data ? decode(data) : nil
-    rescue => e
-      destroy_session_from_sid(sid, drop: true)
-      on_session_load_error.call(e, sid) if on_session_load_error
-      nil
-    end
-  end
-
-  def decode(data)
-    serializer.load(data)
-  end
-
   def set_session(env, sid, session_data, options = nil) # rubocop: disable MethodLength, LineLength
-    expiry = (options || env.fetch(ENV_SESSION_OPTIONS_KEY))[:expire_after]
-    if expiry
-      redis.setex(prefixed(sid), expiry, encode(session_data))
-    else
-      redis.set(prefixed(sid), encode(session_data))
-    end
-    return sid
+    save_by_session_id(sid, session_data, options)
   rescue Errno::ECONNREFUSED => e
     on_redis_down.call(e, env, sid) if on_redis_down
     return false
-  end
-
-  def encode(session_data)
-    serializer.dump(session_data)
   end
 
   def destroy_session(env, sid, options)
@@ -148,16 +115,6 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     (options || {})[:drop] ? nil : generate_sid
   rescue Errno::ECONNREFUSED => e
     on_redis_down.call(e, options[:env] || {}, sid) if on_redis_down
-  end
-
-  def determine_serializer(serializer)
-    serializer ||= :marshal
-    case serializer
-    when :marshal then Marshal
-    when :json    then JsonSerializer
-    when :hybrid  then HybridSerializer
-    else serializer
-    end
   end
 
   # Uses built-in JSON library to encode/decode session
