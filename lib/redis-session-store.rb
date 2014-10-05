@@ -6,9 +6,8 @@ require 'redis'
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
   VERSION = '0.8.0'
   # Rails 3.1 and beyond defines the constant elsewhere
-  unless defined?(ENV_SESSION_OPTIONS_KEY)
-    ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY
-  end
+  ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY \
+    unless defined?(ENV_SESSION_OPTIONS_KEY)
 
   # ==== Options
   # * +:key+ - Same as with the other cookie stores, key name
