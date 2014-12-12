@@ -1,4 +1,5 @@
 require 'redis'
+require 'active_support/core_ext'
 
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
@@ -18,7 +19,8 @@ class RedisSessionStore < ActionController::Session::AbstractStore
   def initialize(app, options = {})
     super
 
-    redis_options = options[:redis] || {}
+    options = options.with_indifferent_access
+    redis_options = (options[:redis] || {}).with_indifferent_access
 
     @default_options.merge!(:namespace => 'rack:session')
     @default_options.merge!(redis_options)
