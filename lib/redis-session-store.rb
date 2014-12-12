@@ -19,8 +19,10 @@ class RedisSessionStore < ActionController::Session::AbstractStore
   def initialize(app, options = {})
     super
 
-    options = options.with_indifferent_access
-    redis_options = (options[:redis] || {}).with_indifferent_access
+    options = options.symbolize_keys
+    options[:redis] = options[:redis].symbolize_keys if options[:redis]
+
+    redis_options = options[:redis] || {}
 
     @default_options.merge!(:namespace => 'rack:session')
     @default_options.merge!(redis_options)
