@@ -136,7 +136,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def destroy(env)
     if env['rack.request.cookie_hash'] &&
-        (sid = env['rack.request.cookie_hash'][key])
+       (sid = env['rack.request.cookie_hash'][key])
       destroy_session_from_sid(sid, drop: true, env: env)
     end
     false
