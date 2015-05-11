@@ -149,7 +149,7 @@ describe RedisSessionStore do
 
     context 'when unsuccessfully persisting the session' do
       before do
-        allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
+        allow(store).to receive(:redis).and_raise(Redis::CannotConnectError)
       end
 
       it 'returns false' do
@@ -169,7 +169,7 @@ describe RedisSessionStore do
 
     context 'when redis is down' do
       before do
-        allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
+        allow(store).to receive(:redis).and_raise(Redis::CannotConnectError)
         store.on_redis_down = ->(*_a) { @redis_down_handled = true }
       end
 
@@ -189,7 +189,7 @@ describe RedisSessionStore do
         it 'explodes' do
           expect do
             store.send(:set_session, env, session_id, session_data, options)
-          end.to raise_error(Errno::ECONNREFUSED)
+          end.to raise_error(Redis::CannotConnectError)
         end
       end
     end
@@ -243,7 +243,7 @@ describe RedisSessionStore do
 
       context 'when redis is down' do
         it 'returns true (fallback to old behavior)' do
-          allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
+          allow(store).to receive(:redis).and_raise(Redis::CannotConnectError)
           expect(store.send(:session_exists?, :env)).to eq(true)
         end
       end
@@ -270,7 +270,7 @@ describe RedisSessionStore do
 
     context 'when redis is down' do
       before do
-        allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
+        allow(store).to receive(:redis).and_raise(Redis::CannotConnectError)
         allow(store).to receive(:generate_sid).and_return('foop')
       end
 
@@ -290,7 +290,7 @@ describe RedisSessionStore do
         it 'explodes' do
           expect do
             store.send(:get_session, double('env'), fake_key)
-          end.to raise_error(Errno::ECONNREFUSED)
+          end.to raise_error(Redis::CannotConnectError)
         end
       end
     end
@@ -317,7 +317,7 @@ describe RedisSessionStore do
 
       context 'when redis is down' do
         before do
-          allow(store).to receive(:redis).and_raise(Errno::ECONNREFUSED)
+          allow(store).to receive(:redis).and_raise(Redis::CannotConnectError)
         end
 
         it 'returns false' do
@@ -330,7 +330,7 @@ describe RedisSessionStore do
           it 'explodes' do
             expect do
               store.send(:destroy, env)
-            end.to raise_error(Errno::ECONNREFUSED)
+            end.to raise_error(Redis::CannotConnectError)
           end
         end
       end

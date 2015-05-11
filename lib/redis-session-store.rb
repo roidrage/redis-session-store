@@ -68,7 +68,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
       value && !value.empty? &&
       redis.exists(prefixed(value))
     )
-  rescue Errno::ECONNREFUSED => e
+  rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, value) if on_redis_down
 
     true
@@ -93,7 +93,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     end
 
     [sid, session]
-  rescue Errno::ECONNREFUSED => e
+  rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, sid) if on_redis_down
     [generate_sid, {}]
   end
@@ -121,7 +121,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
       redis.set(prefixed(sid), encode(session_data))
     end
     return sid
-  rescue Errno::ECONNREFUSED => e
+  rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, sid) if on_redis_down
     return false
   end
@@ -145,7 +145,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   def destroy_session_from_sid(sid, options = {})
     redis.del(prefixed(sid))
     (options || {})[:drop] ? nil : generate_sid
-  rescue Errno::ECONNREFUSED => e
+  rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, options[:env] || {}, sid) if on_redis_down
   end
 
