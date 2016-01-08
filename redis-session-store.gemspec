@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.files = `git ls-files -z`.split("\x0")
   gem.require_paths = %w(lib)
   gem.version = File.read('lib/redis-session-store.rb')
-    .match(/^  VERSION = '(.*)'/)[1]
+                .match(/^  VERSION = '(.*)'/)[1]
 
   gem.add_runtime_dependency 'redis'
   gem.add_runtime_dependency 'actionpack', '>= 3', '< 5.1'
