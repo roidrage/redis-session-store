@@ -102,6 +102,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     on_redis_down.call(e, env, sid) if on_redis_down
     [generate_sid, {}]
   end
+  alias_method :find_session, :get_session
 
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
@@ -130,6 +131,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     on_redis_down.call(e, env, sid) if on_redis_down
     return false
   end
+  alias_method :write_session, :set_session
 
   def encode(session_data)
     serializer.dump(session_data)
