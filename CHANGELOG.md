@@ -1,6 +1,11 @@
 redis-session-store history
 ===========================
 
+## v0.8.1 (2016-01-25)
+
+* Support for Rails 5 and Rack 2
+* Expand error support for redis-rb v3 gem
+
 ## v0.8.0 (2014-08-28)
 
 * Allow for injection of custom redis client
