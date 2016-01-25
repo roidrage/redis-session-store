@@ -14,3 +14,4 @@ Redis Session Store authors
 - Michael Xavier
 - Olek Poplavsky
 - Tim Lossen
+- Todd Bealmear

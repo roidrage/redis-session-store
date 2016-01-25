@@ -6,8 +6,13 @@ require 'redis'
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
   VERSION = '0.8.0'
   # Rails 3.1 and beyond defines the constant elsewhere
-  ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY \
-    unless defined?(ENV_SESSION_OPTIONS_KEY)
+  unless defined?(ENV_SESSION_OPTIONS_KEY)
+    if Rack.release.split('.').first.to_i > 1
+      ENV_SESSION_OPTIONS_KEY = Rack::RACK_SESSION_OPTIONS
+    else
+      ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY
+    end
+  end
 
   # ==== Options
   # * +:key+ - Same as with the other cookie stores, key name
@@ -97,6 +102,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     on_redis_down.call(e, env, sid) if on_redis_down
     [generate_sid, {}]
   end
+  alias_method :find_session, :get_session
 
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
@@ -113,7 +119,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     serializer.load(data)
   end
 
-  def set_session(env, sid, session_data, options = nil) # rubocop: disable MethodLength, LineLength
+  def set_session(env, sid, session_data, options = nil)
     expiry = (options || env.fetch(ENV_SESSION_OPTIONS_KEY))[:expire_after]
     if expiry
       redis.setex(prefixed(sid), expiry, encode(session_data))
@@ -125,6 +131,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     on_redis_down.call(e, env, sid) if on_redis_down
     return false
   end
+  alias_method :write_session, :set_session
 
   def encode(session_data)
     serializer.dump(session_data)
