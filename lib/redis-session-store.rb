@@ -34,6 +34,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #       redis: {
   #         db: 2,
   #         expire_after: 120.minutes,
+  #         refresh_ttl: false,
   #         key_prefix: 'myapp:session:',
   #         host: 'host', # Redis host name, default is localhost
   #         port: 12345   # Redis port, default is 6379
@@ -96,7 +97,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
       sid = generate_sid
       session = {}
     end
-
+    refresh(sid)
     [sid, session]
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, sid) if on_redis_down
@@ -112,6 +113,14 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
       destroy_session_from_sid(sid, drop: true)
       on_session_load_error.call(e, sid) if on_session_load_error
       nil
+    end
+  end
+
+  def refresh(sid)
+    refresh = (default_options || env.fetch(ENV_SESSION_OPTIONS_KEY))[:refresh_ttl]
+    expiry  = (default_options || env.fetch(ENV_SESSION_OPTIONS_KEY))[:expire_after]
+    if refresh && expiry
+      redis.expire(prefixed(sid), expiry)
     end
   end
 
