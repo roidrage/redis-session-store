@@ -140,6 +140,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   def destroy_session(env, sid, options)
     destroy_session_from_sid(sid, (options || {}).to_hash.merge(env: env))
   end
+  alias_method :delete_session, :destroy_session
 
   def destroy(env)
     if env['rack.request.cookie_hash'] &&
