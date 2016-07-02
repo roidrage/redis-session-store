@@ -1,158 +1,221 @@
-redis-session-store history
-===========================
+# Change Log
 
-## v0.8.1 (2016-01-25)
+**ATTN**: This project uses [semantic versioning](http://semver.org/).
 
-* Support for Rails 5 and Rack 2
-* Expand error support for redis-rb v3 gem
+## [Unreleased]
 
-## v0.8.0 (2014-08-28)
+## [0.9.0] - 2016-07-02
+### Added
+- [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)
+- Method alias for `#delete_session` -&gt; `#destroy_session`
 
-* Allow for injection of custom redis client
-* Explicitly declare actionpack dependency
-* Spec updates for rspec 3
+### Changed
+- Tested version of Ruby 2 up to 2.3.1
+- Session config examples to use `redis: { url: '...' }`
 
-## v0.7.0 (2014-04-22)
+### Removed
+- Ruby 1.9.3 support due to Rack 2 requirements
 
-* Fix issue #38, we now delay writing to redis until a session exists. This is
-  a backwards-incompatible change, as it removes the `on_sid_collision` option.
+## [0.8.1] - 2016-01-25
+### Added
+- Support for Rails 5 and Rack 2
+
+### Changed
+- Error support for redis-rb v3 gem
+
+## [0.8.0] - 2014-08-28
+### Added
+- Allow for injection of custom redis client
+- Explicitly declare actionpack dependency
+
+### Changed
+- Spec updates for rspec 3
+
+## [0.7.0] - 2014-04-22
+### Fixed
+- Issue #38, we now delay writing to redis until a session exists. This is a
+  backwards-incompatible change, as it removes the `on_sid_collision` option.
   There is now no checking for sid collisions, however that is very unlikely.
 
-## v0.6.6 (2014-04-08)
+## [0.6.6] - 2014-04-08
+### Fixed
+- Issue #37, use correct constant for `ENV_SESSION_OPTIONS_KEY` if not passed.
 
-* Fix issue #37, use correct constant for `ENV_SESSION_OPTIONS_KEY` if not
-  passed.
+## [0.6.5] - 2014-04-04
+### Fixed
+- Issue #36, use setnx to get a new session id instead of get. This prevents a
+  very rare id collision.
 
-## v0.6.5 (2014-04-04)
+## [0.6.4] - 2014-04-04
+### Removed
+- `#setnx` usage in v0.6.3 so we can change our sessions
 
-* Fix issue #36, use setnx to get a new session id instead of get. This
-  prevents a very rare id collision.
-
-## v0.6.4 (2014-04-04)
-
-* Reverting `setnx` usage in v0.6.3 so we can change our sessions.
-
-## v0.6.3 (2014-04-01)
-
-* Reverting the `#setnx` change in `0.6.2` as it behaved badly under
-  load, hitting yet another race condition issue and pegging the CPU.
-* Setting session ID with a multi-call `#setnx` and `#expire` instead of
+## [0.6.3] - 2014-04-01
+### Changed
+- Setting session ID with a multi-call `#setnx` and `#expire` instead of
   `#setex`.
 
-## v0.6.2 (2014-03-31)
+### Removed
+- `#setnx` change in v0.6.2 as it behaved badly under load, hitting yet another
+  race condition issue and pegging the CPU.
 
-* Use `#setnx` instead of `#get` when checking for session ID
-  collisions, which is slightly more paranoid and should help avoid a
-  particularly nasty edge case.
+## [0.6.2] - 2014-03-31
+### Changed
+- Use `#setnx` instead of `#get` when checking for session ID collisions, which
+  is slightly more paranoid and should help avoid a particularly nasty edge
+  case.
 
-## v0.6.1 (2014-03-17)
+## [0.6.1] - 2014-03-17
+### Fixed
+- Compatibility with `ActionDispatch::Request::Session::Options` when destroying
+  sessions.
 
-* Fix compatibility with `ActionDispatch::Request::Session::Options`
-  when destroying sessions.
+## [0.6.0] - 2014-03-17
+### Added
+- Custom serializer configuration
+- Custom handling capability for session load errors
 
-## v0.6.0 (2014-03-17)
+### Changed
+- Always destroying sessions that cannot be loaded
 
-* Add custom serializer configuration
-* Add custom handling capability for session load errors
-* Always destroying sessions that cannot be loaded
+## [0.5.0] - 2014-03-16
+### Added
+- Support for `on_sid_collision` handler option
+- Support for `on_redis_down` handler option
 
-## v0.5.0 (2014-03-16)
-
-* Keep generating session IDs until one is found that doesn't collide
-  with existing session IDs
-* Add support for `on_sid_collision` handler option
-* Add support for `on_redis_down` handler option
-* **BACKWARD INCOMPATIBLE** Drop support for `:raise_errors` option
-
-## v0.4.2 (2014-03-14)
-
-* Renaming `load_session` method to not conflict with AbstractStore
-
-## v0.4.1 (yanked) (2014-03-13)
-
-* Regenerate session ID when session is missing
-
-## v0.4.0 (2014-02-19)
-
-* Add support for `ENV_SESSION_OPTIONS_KEY` rack env option
-* Add support for `:raise_errors` session option (kinda like Dalli)
-* Increasing test coverage
-
-## v0.3.1 (2014-02-19)
-
-* Add `#destroy_session` method
-* Clean up remaining RuboCop offenses
-* Documentation updates
-
-## v0.3.0 (2014-02-13)
-
-* Rails 3 compatibility
-* Switch from minitest to rspec
-* Add test coverage
-* RuboCop cleanup
-
-## v0.2.4 (2014-03-16)
-
-* Keep generating session IDs until one is found that doesn't collide
+### Changed
+- Keep generating session IDs until one is found that doesn't collide
   with existing session IDs
 
-## v0.2.3 (2014-03-14)
+### Removed
+- **BACKWARD INCOMPATIBLE** Drop support for `:raise_errors` option
 
-* Renaming `load_session` method to not conflict with AbstractStore
+## [0.4.2] - 2014-03-14
+### Changed
+- Renaming `load_session` method to not conflict with AbstractStore
 
-## v0.2.2 (yanked) (2014-03-13)
+## [0.4.1] - (2014-03-13) [YANKED]
+### Changed
+- Regenerate session ID when session is missing
 
-* Regenerate session ID when session is missing
+## [0.4.0] - 2014-02-19
+### Added
+- Support for `ENV_SESSION_OPTIONS_KEY` rack env option
+- Support for `:raise_errors` session option (kinda like Dalli)
 
-## v0.2.1 (2013-09-17)
+### Changed
+- Increasing test coverage
 
-* Add explicit MIT license metadata in gemspec
+## [0.3.1] - 2014-02-19
+### Added
+- `#destroy_session` method
 
-## v0.2.0 (2013-09-13)
+### Changed
+- Clean up remaining RuboCop offenses
+- Documentation updates
 
-* Use `@redis.setex` when expiry provided, else `@redis.set`
-* Gemfile, gemspec, and git updates
-* Nest redis-specific options inside a `:redis` key of session options
-* Add `#destroy` method
-* Rescue only `Errno::ECONNREFUSED` exceptions
-* Handle `nil` cookies during `#destroy`
-* Add Travis integration
-* Add some minimal tests to ensure backward compatibility session options
+## [0.3.0] - 2014-02-13
+### Added
+- Rails 3 compatibility
+- Add test coverage
 
-## v0.1.9 (2012-03-06)
+### Changed
+- Switch from minitest to rspec
+- RuboCop cleanup
 
-## v0.1.8 (2010-12-09)
+## [0.2.4] - 2014-03-16
+### Changed
+- Keep generating session IDs until one is found that doesn't collide
+  with existing session IDs
 
-* Remove use of `@redis.pipelined`
+## [0.2.3] - 2014-03-14
+### Changed
+- Renaming `load_session` method to not conflict with AbstractStore
 
-## v0.1.7 (2010-12-08)
+## [0.2.2] - 2014-03-13 [YANKED]
+### Changed 
+- Regenerate session ID when session is missing
 
-* Using latest redis gem API
+## [0.2.1] - 2013-09-17
+### Added
+- Explicit MIT license metadata in gemspec
 
-## v0.1.6 (2010-04-18)
+## [0.2.0] - 2013-09-13
+### Added
+- Gemfile, gemspec, and git updates
+- `#destroy` method
+- Travis integration
+- Some minimal tests to ensure backward compatibility session options
 
-* Using pipelined format with `set` and `expire`
-* Changing default port from 6370 to 6379
+### Changed
+- Nest redis-specific options inside a `:redis` key of session options
+- Rescue only `Errno::ECONNREFUSED` exceptions
+- Handle `nil` cookies during `#destroy`
 
-## v0.1.5 (2010-04-07)
+## [0.1.9] - 2012-03-06
+### Changed
+- Use `@redis.setex` when expiry provided, else `@redis.set`
+- gemification 
+- Options hash to no longer expect redis options at same level
 
-## v0.1.4 (2010-03-26)
+## [0.1.8] - 2010-12-09
+### Removed
+- Use of `@redis.pipelined`
 
-* Changed redis parameter from `:server` to `:host`
+## 0.1.7 - 2010-12-08
+### Changed
+- Using latest redis gem API
 
-## v0.1.3 (2009-12-30)
+## 0.1.6 - 2010-04-18
+### Changed
+- Using pipelined format with `set` and `expire`
+- Changing default port from 6370 to 6379
 
-* Documentation updates
+## 0.1.5 - 2010-04-07
 
-## v0.1.2 (2009-12-30)
+## 0.1.4 - 2010-03-26
+### Changed
+- Redis parameter from `:server` to `:host`
 
-* Documentation updates
+## 0.1.3 - 2009-12-30
+### Changed
+- Documentation updates
 
-## v0.1.1 (2009-12-30)
+## 0.1.2 - 2009-12-30
+### Changed
+- Documentation updates
 
-* library file renamed to `redis-session-store.rb` to play nicely with
+## 0.1.1 - 2009-12-30
+### Changed
+- library file renamed to `redis-session-store.rb` to play nicely with
   rails require
 
-## v0.1 (2009-12-30)
+## 0.1 - 2009-12-30
+### Added
+- first working version
 
-* first working version
+[Unreleased]: https://github.com/roidrage/redis-session-store/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/roidrage/redis-session-store/compare/v0.8.1...v0.9.0
+[0.8.1]: https://github.com/roidrage/redis-session-store/compare/v0.8.0...v0.8.1
+[0.8.0]: https://github.com/roidrage/redis-session-store/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/roidrage/redis-session-store/compare/v0.6.6...v0.7.0
+[0.6.6]: https://github.com/roidrage/redis-session-store/compare/v0.6.5...v0.6.6
+[0.6.5]: https://github.com/roidrage/redis-session-store/compare/v0.6.4...v0.6.5
+[0.6.4]: https://github.com/roidrage/redis-session-store/compare/v0.6.3...v0.6.4
+[0.6.3]: https://github.com/roidrage/redis-session-store/compare/v0.6.2...v0.6.3
+[0.6.2]: https://github.com/roidrage/redis-session-store/compare/v0.6.1...v0.6.2
+[0.6.1]: https://github.com/roidrage/redis-session-store/compare/v0.6.0...v0.6.1
+[0.6.0]: https://github.com/roidrage/redis-session-store/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/roidrage/redis-session-store/compare/v0.4.2...v0.5.0
+[0.4.2]: https://github.com/roidrage/redis-session-store/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/roidrage/redis-session-store/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/roidrage/redis-session-store/compare/v0.3.1...v0.4.0
+[0.3.1]: https://github.com/roidrage/redis-session-store/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/roidrage/redis-session-store/compare/v0.2.4...v0.3.0
+[0.2.4]: https://github.com/roidrage/redis-session-store/compare/v0.2.3...v0.2.4
+[0.2.3]: https://github.com/roidrage/redis-session-store/compare/v0.2.2...v0.2.3
+[0.2.2]: https://github.com/roidrage/redis-session-store/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/roidrage/redis-session-store/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/roidrage/redis-session-store/compare/v0.1.9...v0.2.0
+[0.1.9]: https://github.com/roidrage/redis-session-store/compare/v0.1.8...v0.1.9
+[0.1.8]: https://github.com/roidrage/redis-session-store/compare/v0.1.7...v0.1.8
