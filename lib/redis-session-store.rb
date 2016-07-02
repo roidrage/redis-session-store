@@ -17,9 +17,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   # ==== Options
   # * +:key+ - Same as with the other cookie stores, key name
   # * +:redis+ - A hash with redis-specific options
-  #   * +:host+ - Redis host name, default is localhost
-  #   * +:port+ - Redis port, default is 6379
-  #   * +:db+ - Database number, defaults to 0.
+  #   * +:url+ - Redis url, default is redis://localhost:6379/0
   #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
   #   * +:expire_after+ - A number in seconds for session timeout
   #   * +:client+ - Connect to Redis with given object rather than create one
@@ -32,11 +30,9 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #     My::Application.config.session_store :redis_session_store, {
   #       key: 'your_session_key',
   #       redis: {
-  #         db: 2,
   #         expire_after: 120.minutes,
   #         key_prefix: 'myapp:session:',
-  #         host: 'host', # Redis host name, default is localhost
-  #         port: 12345   # Redis port, default is 6379
+  #         url: 'redis://host:12345/2'
   #       },
   #       on_redis_down: ->(*a) { logger.error("Redis down! #{a.inspect}") }
   #       serializer: :hybrid # migrate from Marshal to JSON

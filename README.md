@@ -39,11 +39,9 @@ In your Rails app, throw in an initializer with the following contents:
 My::Application.config.session_store :redis_session_store, {
   key: 'your_session_key',
   redis: {
-    db: 2,
     expire_after: 120.minutes,
     key_prefix: 'myapp:session:',
-    host: 'host', # Redis host name, default is localhost
-    port: 12345   # Redis port, default is 6379
+    url: 'redis://host:12345/2',
   }
 }
 ```
