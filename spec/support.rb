@@ -1,5 +1,3 @@
-# vim:fileencoding=utf-8
-
 unless defined?(Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY)
   module Rack
     module Session

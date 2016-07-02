@@ -1,5 +1,3 @@
-# vim:fileencoding=utf-8
-
 Gem::Specification.new do |gem|
   gem.name = 'redis-session-store'
   gem.authors = ['Mathias Meyer']
