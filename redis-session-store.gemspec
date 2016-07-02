@@ -4,7 +4,7 @@ Gem::Specification.new do |gem|
   gem.email = ['meyer@paperplanes.de']
   gem.summary = 'A drop-in replacement for e.g. MemCacheStore to ' \
                 'store Rails sessions (and Rails sessions only) in Redis.'
-  gem.description = gem.summary
+  gem.description = gem.summary + ' For great glory!'
   gem.homepage = 'https://github.com/roidrage/redis-session-store'
   gem.license = 'MIT'
 
@@ -16,12 +16,12 @@ Gem::Specification.new do |gem|
   gem.version = File.read('lib/redis-session-store.rb')
                     .match(/^  VERSION = '(.*)'/)[1]
 
-  gem.add_runtime_dependency 'redis'
+  gem.add_runtime_dependency 'redis', '~> 3'
   gem.add_runtime_dependency 'actionpack', '>= 3', '< 5.1'
 
-  gem.add_development_dependency 'fakeredis'
-  gem.add_development_dependency 'rake'
-  gem.add_development_dependency 'rspec'
-  gem.add_development_dependency 'rubocop'
-  gem.add_development_dependency 'simplecov'
+  gem.add_development_dependency 'fakeredis', '~> 0.5'
+  gem.add_development_dependency 'rake', '~> 11'
+  gem.add_development_dependency 'rspec', '~> 3'
+  gem.add_development_dependency 'rubocop', '~> 0.41'
+  gem.add_development_dependency 'simplecov', '~> 0.11'
 end

@@ -133,7 +133,7 @@
 - Renaming `load_session` method to not conflict with AbstractStore
 
 ## [0.2.2] - 2014-03-13 [YANKED]
-### Changed 
+### Changed
 - Regenerate session ID when session is missing
 
 ## [0.2.1] - 2013-09-17
@@ -155,7 +155,7 @@
 ## [0.1.9] - 2012-03-06
 ### Changed
 - Use `@redis.setex` when expiry provided, else `@redis.set`
-- gemification 
+- gemification
 - Options hash to no longer expect redis options at same level
 
 ## [0.1.8] - 2010-12-09
