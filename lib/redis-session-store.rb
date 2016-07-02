@@ -4,7 +4,7 @@ require 'redis'
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
-  VERSION = '0.8.1'
+  VERSION = '0.8.1'.freeze
   # Rails 3.1 and beyond defines the constant elsewhere
   unless defined?(ENV_SESSION_OPTIONS_KEY)
     if Rack.release.split('.').first.to_i > 1
@@ -47,7 +47,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
     redis_options = options[:redis] || {}
 
-    @default_options.merge!(namespace: 'rack:session')
+    @default_options[:namespace] = 'rack:session'
     @default_options.merge!(redis_options)
     @redis = redis_options[:client] || Redis.new(redis_options)
     @on_redis_down = options[:on_redis_down]
@@ -83,7 +83,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     %w(on_redis_down on_session_load_error).each do |h|
       next unless (handler = public_send(h)) && !handler.respond_to?(:call)
 
-      fail ArgumentError, "#{h} handler is not callable"
+      raise ArgumentError, "#{h} handler is not callable"
     end
   end
 
@@ -102,7 +102,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     on_redis_down.call(e, env, sid) if on_redis_down
     [generate_sid, {}]
   end
-  alias_method :find_session, :get_session
+  alias find_session get_session
 
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
@@ -131,7 +131,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     on_redis_down.call(e, env, sid) if on_redis_down
     return false
   end
-  alias_method :write_session, :set_session
+  alias write_session set_session
 
   def encode(session_data)
     serializer.dump(session_data)
