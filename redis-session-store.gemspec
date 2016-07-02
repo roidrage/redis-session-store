@@ -16,12 +16,12 @@ Gem::Specification.new do |gem|
   gem.version = File.read('lib/redis-session-store.rb')
                     .match(/^  VERSION = '(.*)'/)[1]
 
-  gem.add_runtime_dependency 'redis', '~> 0'
+  gem.add_runtime_dependency 'redis', '~> 3'
   gem.add_runtime_dependency 'actionpack', '>= 3', '< 5.1'
 
-  gem.add_development_dependency 'fakeredis', '~> 0'
-  gem.add_development_dependency 'rake', '~> 0'
-  gem.add_development_dependency 'rspec', '~> 0'
-  gem.add_development_dependency 'rubocop', '~> 0'
-  gem.add_development_dependency 'simplecov', '~> 0'
+  gem.add_development_dependency 'fakeredis', '~> 0.5'
+  gem.add_development_dependency 'rake', '~> 11'
+  gem.add_development_dependency 'rspec', '~> 3'
+  gem.add_development_dependency 'rubocop', '~> 0.41'
+  gem.add_development_dependency 'simplecov', '~> 0.11'
 end
