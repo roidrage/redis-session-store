@@ -4,7 +4,7 @@ require 'redis'
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
 class RedisSessionStore < ActionDispatch::Session::AbstractStore
-  VERSION = '0.8.1'
+  VERSION = '0.8.1'.freeze
   # Rails 3.1 and beyond defines the constant elsewhere
   unless defined?(ENV_SESSION_OPTIONS_KEY)
     if Rack.release.split('.').first.to_i > 1
@@ -17,9 +17,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   # ==== Options
   # * +:key+ - Same as with the other cookie stores, key name
   # * +:redis+ - A hash with redis-specific options
-  #   * +:host+ - Redis host name, default is localhost
-  #   * +:port+ - Redis port, default is 6379
-  #   * +:db+ - Database number, defaults to 0.
+  #   * +:url+ - Redis url, default is redis://localhost:6379/0
   #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
   #   * +:expire_after+ - A number in seconds for session timeout
   #   * +:client+ - Connect to Redis with given object rather than create one
@@ -32,11 +30,9 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #     My::Application.config.session_store :redis_session_store, {
   #       key: 'your_session_key',
   #       redis: {
-  #         db: 2,
   #         expire_after: 120.minutes,
   #         key_prefix: 'myapp:session:',
-  #         host: 'host', # Redis host name, default is localhost
-  #         port: 12345   # Redis port, default is 6379
+  #         url: 'redis://host:12345/2'
   #       },
   #       on_redis_down: ->(*a) { logger.error("Redis down! #{a.inspect}") }
   #       serializer: :hybrid # migrate from Marshal to JSON
@@ -47,7 +43,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
     redis_options = options[:redis] || {}
 
-    @default_options.merge!(namespace: 'rack:session')
+    @default_options[:namespace] = 'rack:session'
     @default_options.merge!(redis_options)
     @redis = redis_options[:client] || Redis.new(redis_options)
     @on_redis_down = options[:on_redis_down]
@@ -83,7 +79,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     %w(on_redis_down on_session_load_error).each do |h|
       next unless (handler = public_send(h)) && !handler.respond_to?(:call)
 
-      fail ArgumentError, "#{h} handler is not callable"
+      raise ArgumentError, "#{h} handler is not callable"
     end
   end
 
@@ -102,7 +98,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     on_redis_down.call(e, env, sid) if on_redis_down
     [generate_sid, {}]
   end
-  alias_method :find_session, :get_session
+  alias find_session get_session
 
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
@@ -131,7 +127,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     on_redis_down.call(e, env, sid) if on_redis_down
     return false
   end
-  alias_method :write_session, :set_session
+  alias write_session set_session
 
   def encode(session_data)
     serializer.dump(session_data)
