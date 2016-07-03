@@ -4,7 +4,7 @@
 
 ## [Unreleased]
 
-## [0.9.1] - 2016-07-02
+## [0.9.1] - 2016-07-03
 ### Added
 - More specific runtime dependencies
 
