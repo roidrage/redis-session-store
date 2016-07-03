@@ -1,9 +1,8 @@
-Redis Session Store
-===================
+# Redis Session Store
 
-[![Build Status](https://travis-ci.org/roidrage/redis-session-store.png?branch=master)](https://travis-ci.org/roidrage/redis-session-store)
-[![Code Climate](https://codeclimate.com/github/roidrage/redis-session-store.png)](https://codeclimate.com/github/roidrage/redis-session-store)
-[![Gem Version](https://badge.fury.io/rb/redis-session-store.png)](http://badge.fury.io/rb/redis-session-store)
+[![Build Status](https://travis-ci.org/roidrage/redis-session-store.svg?branch=master)](https://travis-ci.org/roidrage/redis-session-store)
+[![Code Climate](https://codeclimate.com/github/roidrage/redis-session-store.svg)](https://codeclimate.com/github/roidrage/redis-session-store)
+[![Gem Version](https://badge.fury.io/rb/redis-session-store.svg)](http://badge.fury.io/rb/redis-session-store)
 
 A simple Redis-based session store for Rails.  But why, you ask,
 when there's [redis-store](http://github.com/jodosha/redis-store/)?
@@ -20,8 +19,7 @@ only suitable for Rails applications. For other frameworks or
 drop-in support for caching, check out
 [redis-store](http://github.com/jodosha/redis-store/).
 
-Installation
-------------
+## Installation
 
 For Rails 3+, adding this to your `Gemfile` will do the trick.
 
@@ -29,8 +27,7 @@ For Rails 3+, adding this to your `Gemfile` will do the trick.
 gem 'redis-session-store'
 ```
 
-Configuration
--------------
+## Configuration
 
 See `lib/redis-session-store.rb` for a list of valid options.
 In your Rails app, throw in an initializer with the following contents:
@@ -102,8 +99,7 @@ My::Application.config.session_store :redis_session_store, {
 
 **Note** The session will *always* be destroyed when it cannot be loaded.
 
-Rails 2 Compatibility
----------------------
+## Rails 2 Compatibility
 
 This gem is currently only compatible with Rails 3+.  If you need
 Rails 2 compatibility, be sure to pin to a lower version like so:
@@ -111,8 +107,8 @@ Rails 2 compatibility, be sure to pin to a lower version like so:
 ``` ruby
 gem 'redis-session-store', '< 0.3'
 ```
-Contributing, Authors, & License
---------------------------------
+
+## Contributing, Authors, & License
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [AUTHORS.md](AUTHORS.md), and
 [LICENSE](LICENSE), respectively.
