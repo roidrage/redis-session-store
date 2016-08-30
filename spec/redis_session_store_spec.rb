@@ -148,7 +148,8 @@ describe RedisSessionStore do
 
     context 'when unsuccessfully persisting the session' do
       before do
-        allow(store).to receive(:redis).and_raise(Redis::CannotConnectError)
+        allow(store.instance_variable_get(:@adapter))
+          .to receive(:redis).and_raise(Redis::CannotConnectError)
       end
 
       it 'returns false' do
@@ -168,7 +169,8 @@ describe RedisSessionStore do
 
     context 'when redis is down' do
       before do
-        allow(store).to receive(:redis).and_raise(Redis::CannotConnectError)
+        allow(store.instance_variable_get(:@adapter))
+          .to receive(:redis).and_raise(Redis::CannotConnectError)
         store.on_redis_down = ->(*_a) { @redis_down_handled = true }
       end
 
@@ -260,7 +262,8 @@ describe RedisSessionStore do
 
     it 'retrieves the prefixed key from redis' do
       redis = double('redis')
-      allow(store).to receive(:redis).and_return(redis)
+      allow(store.instance_variable_get(:@adapter))
+        .to receive(:redis).and_return(redis)
       allow(store).to receive(:generate_sid).and_return(fake_key)
       expect(redis).to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
 
@@ -269,7 +272,8 @@ describe RedisSessionStore do
 
     context 'when redis is down' do
       before do
-        allow(store).to receive(:redis).and_raise(Redis::CannotConnectError)
+        allow(store.instance_variable_get(:@adapter))
+          .to receive(:redis).and_raise(Redis::CannotConnectError)
         allow(store).to receive(:generate_sid).and_return('foop')
       end
 
@@ -357,7 +361,8 @@ describe RedisSessionStore do
     let(:expected_encoding) { encoded_data }
 
     before do
-      allow(store).to receive(:redis).and_return(redis)
+      allow(store.instance_variable_get(:@adapter))
+        .to receive(:redis).and_return(redis)
     end
 
     shared_examples_for 'serializer' do
@@ -367,8 +372,8 @@ describe RedisSessionStore do
       end
 
       it 'decodes correctly' do
-        expect(store.send(:get_session, env, session_id))
-          .to eq([session_id, session_data])
+        expect(store.send(:load_session_from_redis, env, session_id))
+          .to eq(session_data)
       end
     end
 
@@ -422,20 +427,21 @@ describe RedisSessionStore do
   describe 'handling decode errors' do
     context 'when a class is serialized that does not exist' do
       before do
-        allow(store).to receive(:redis)
+        allow(store.instance_variable_get(:@adapter)).to receive(:redis)
           .and_return(double('redis',
                              get: "\x04\bo:\nNonExistentClass\x00",
                              del: true))
       end
 
       it 'returns an empty session' do
-        expect(store.send(:load_session_from_redis, 'whatever')).to be_nil
+        expect(store.send(:load_session_from_redis, double('env'), 'whatever'))
+          .to be_nil
       end
 
       it 'destroys and drops the session' do
         expect(store).to receive(:destroy_session_from_sid)
           .with('wut', drop: true)
-        store.send(:load_session_from_redis, 'wut')
+        store.send(:load_session_from_redis, double('env'), 'wut')
       end
 
       context 'when a custom on_session_load_error handler is provided' do
@@ -447,7 +453,7 @@ describe RedisSessionStore do
         end
 
         it 'passes the error and the sid to the handler' do
-          store.send(:load_session_from_redis, 'foo')
+          store.send(:load_session_from_redis, double('env'), 'foo')
           expect(@e).to be_kind_of(StandardError)
           expect(@sid).to eq('foo')
         end
@@ -456,18 +462,19 @@ describe RedisSessionStore do
 
     context 'when the encoded data is invalid' do
       before do
-        allow(store).to receive(:redis)
+        allow(store.instance_variable_get(:@adapter)).to receive(:redis)
           .and_return(double('redis', get: "\x00\x00\x00\x00", del: true))
       end
 
       it 'returns an empty session' do
-        expect(store.send(:load_session_from_redis, 'bar')).to be_nil
+        expect(store.send(:load_session_from_redis, double('env'), 'bar'))
+          .to be_nil
       end
 
       it 'destroys and drops the session' do
         expect(store).to receive(:destroy_session_from_sid)
           .with('wut', drop: true)
-        store.send(:load_session_from_redis, 'wut')
+        store.send(:load_session_from_redis, double('env'), 'wut')
       end
 
       context 'when a custom on_session_load_error handler is provided' do
@@ -479,7 +486,7 @@ describe RedisSessionStore do
         end
 
         it 'passes the error and the sid to the handler' do
-          store.send(:load_session_from_redis, 'foo')
+          store.send(:load_session_from_redis, double('env'), 'foo')
           expect(@e).to be_kind_of(StandardError)
           expect(@sid).to eq('foo')
         end
