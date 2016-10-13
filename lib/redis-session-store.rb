@@ -115,7 +115,8 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def set_session(env, sid, session_data, options = nil)
-    expiry = (options || env.fetch(ENV_SESSION_OPTIONS_KEY))[:expire_after]
+    options = options || env.fetch(ENV_SESSION_OPTIONS_KEY)
+    expiry = options[:store_expire_after] || options[:expire_after]
     if expiry
       redis.setex(prefixed(sid), expiry, encode(session_data))
     else
