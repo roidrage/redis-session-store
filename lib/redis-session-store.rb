@@ -1,5 +1,4 @@
 require 'redis'
-require 'active_support/core_ext'
 
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
@@ -19,8 +18,8 @@ class RedisSessionStore < ActionController::Session::AbstractStore
   def initialize(app, options = {})
     super
 
-    options = options.symbolize_keys
-    options[:redis] = options[:redis].symbolize_keys if options[:redis]
+    options = symbolize_keys(options)
+    options[:redis] = symbolize_keys(options[:redis]) if options[:redis]
 
     redis_options = options[:redis] || {}
 
@@ -30,6 +29,14 @@ class RedisSessionStore < ActionController::Session::AbstractStore
   end
 
   private
+
+    def symbolize_keys(hash)
+      hash.inject({}) do |options, (key, value)|
+        options[(key.to_sym rescue key) || key] = value
+        options
+      end
+    end
+
     def prefixed(sid)
       "#{@default_options[:key_prefix]}#{sid}"
     end
