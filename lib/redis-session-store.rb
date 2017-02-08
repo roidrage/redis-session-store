@@ -18,6 +18,9 @@ class RedisSessionStore < ActionController::Session::AbstractStore
   def initialize(app, options = {})
     super
 
+    options = symbolize_keys(options)
+    options[:redis] = symbolize_keys(options[:redis]) if options[:redis]
+
     redis_options = options[:redis] || {}
 
     @default_options.merge!(:namespace => 'rack:session')
@@ -26,6 +29,14 @@ class RedisSessionStore < ActionController::Session::AbstractStore
   end
 
   private
+
+    def symbolize_keys(hash)
+      hash.inject({}) do |options, (key, value)|
+        options[(key.to_sym rescue key) || key] = value
+        options
+      end
+    end
+
     def prefixed(sid)
       "#{@default_options[:key_prefix]}#{sid}"
     end
