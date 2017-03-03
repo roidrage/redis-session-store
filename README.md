@@ -36,7 +36,8 @@ In your Rails app, throw in an initializer with the following contents:
 My::Application.config.session_store :redis_session_store, {
   key: 'your_session_key',
   redis: {
-    expire_after: 120.minutes,
+    expire_after: 120.minutes,  # cookie expiration
+    ttl: 120.minutes,           # Redis expiration, defaults to 'expire_after'
     key_prefix: 'myapp:session:',
     url: 'redis://host:12345/2',
   }
