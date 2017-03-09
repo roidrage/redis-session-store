@@ -3,6 +3,7 @@ Redis Session Store authors
 
 - Ben Marini
 - Dan Buch
+- Connor Mullen
 - Donald Plummer
 - Edwin Cruz
 - Gonçalo Silva
