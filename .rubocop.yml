@@ -1,7 +1,18 @@
 inherit_from: .rubocop_todo.yml
 
+AllCops:
+  DisplayCopNames: true
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+
+Security/MarshalLoad:
+  Enabled: false
+
 FileName:
   Enabled: false
 
 DoubleNegation:
   Enabled: false
+
