@@ -1,4 +1,5 @@
 require 'redis'
+require 'oj'
 
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
@@ -157,6 +158,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     case serializer
     when :marshal then Marshal
     when :json    then JsonSerializer
+    when :oj      then OptimizedJsonSerializer
     when :hybrid  then HybridSerializer
     else serializer
     end
@@ -170,6 +172,17 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
     def self.dump(value)
       JSON.generate(value, quirks_mode: true)
+    end
+  end
+
+  # Uses fastest JSON library to encode/decode session
+  class OptimizedJsonSerializer
+    def self.load(value)
+      Oj.load(value, quirks_mode: true, mode: :compat)
+    end
+
+    def self.dump(value)
+      Oj.dump(value, quirks_mode: true, mode: :compat)
     end
   end
 
