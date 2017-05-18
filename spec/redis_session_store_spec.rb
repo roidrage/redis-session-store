@@ -384,6 +384,13 @@ describe RedisSessionStore do
       it_should_behave_like 'serializer'
     end
 
+    context 'oj' do
+      let(:options) { { serializer: :oj } }
+      let(:encoded_data) { '{"some":"data"}' }
+
+      it_should_behave_like 'serializer'
+    end
+
     context 'hybrid' do
       let(:options) { { serializer: :hybrid } }
       let(:expected_encoding) { '{"some":"data"}' }

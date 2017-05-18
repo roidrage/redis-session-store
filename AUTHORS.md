@@ -13,5 +13,6 @@ Redis Session Store authors
 - Michael Fields
 - Michael Xavier
 - Olek Poplavsky
+- Shota Terashita
 - Tim Lossen
 - Todd Bealmear

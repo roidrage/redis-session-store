@@ -64,6 +64,7 @@ By default the Marshal serializer is used. With Rails 4, you can use JSON as a
 custom serializer:
 
 * `:json` - serialize cookie values with `JSON` (Requires Rails 4+)
+* `:oj` - serialize cookie values with [Oj](https://github.com/ohler55/oj) library (Requires Rails 4+)
 * `:marshal` - serialize cookie values with `Marshal` (Default)
 * `:hybrid` - transparently migrate existing `Marshal` cookie values to `JSON` (Requires Rails 4+)
 * `CustomClass` - You can just pass the constant name of any class that responds to `.load` and `.dump`
