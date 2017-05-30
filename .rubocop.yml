@@ -27,3 +27,8 @@ Style/PercentLiteralDelimiters:
 
 Style/SafeNavigation:
   Enabled: false
+
+Style/YodaCondition:
+  # temporary work around for rubocop bug 'An error occurred while Style/YodaCondition...' (v0.49.1)
+  Exclude:
+    - 'spec/redis_session_store_spec.rb'
