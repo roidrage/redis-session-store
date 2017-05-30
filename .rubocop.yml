@@ -1,7 +1,29 @@
 inherit_from: .rubocop_todo.yml
 
+AllCops:
+  DisplayCopNames: true
+  Exclude:
+    - 'Rakefile'
+    - 'vendor/**/*'
+
 FileName:
   Enabled: false
 
 DoubleNegation:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*.rb'
+
+Security/MarshalLoad:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/PercentLiteralDelimiters:
+  Enabled: false
+
+Style/SafeNavigation:
   Enabled: false
