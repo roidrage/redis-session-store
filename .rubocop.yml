@@ -1,7 +1,34 @@
 inherit_from: .rubocop_todo.yml
 
+AllCops:
+  DisplayCopNames: true
+  Exclude:
+    - 'Rakefile'
+    - 'vendor/**/*'
+
 FileName:
   Enabled: false
 
 DoubleNegation:
   Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*.rb'
+
+Security/MarshalLoad:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/PercentLiteralDelimiters:
+  Enabled: false
+
+Style/SafeNavigation:
+  Enabled: false
+
+Style/YodaCondition:
+  # temporary work around for rubocop bug 'An error occurred while Style/YodaCondition...' (v0.49.1)
+  Exclude:
+    - 'spec/redis_session_store_spec.rb'
