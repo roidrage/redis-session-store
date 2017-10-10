@@ -3,10 +3,10 @@ sudo: false
 cache: bundler
 rvm:
 - 2.3.1
-- jruby-9.1.1.0
+- jruby-9.1.13.0
 matrix:
   allow_failures:
-  - rvm: jruby-9.1.1.0
+  - rvm: jruby-9.1.13.0
 notifications:
   email: false
 deploy:
