@@ -1,4 +1,5 @@
 require 'redis'
+require 'securerandom'
 
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
@@ -18,11 +19,13 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   # * +:redis+ - A hash with redis-specific options
   #   * +:url+ - Redis url, default is redis://localhost:6379/0
   #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
+  #   * +:hashkey_prefix+ - Prefix for hashkeys if session saved as hash
   #   * +:expire_after+ - A number in seconds for session timeout
   #   * +:client+ - Connect to Redis with given object rather than create one
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
   # * +:on_session_load_error:+ - Called with err and SID on Marshal.load fail
   # * +:serializer:+ - Serializer to use on session data, default is :marshal.
+  # * +:adapter:+ - Adapter for other framework's session, default is :default.
   #
   # ==== Examples
   #
@@ -47,6 +50,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @redis = redis_options[:client] || Redis.new(redis_options)
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
+    @adapter = determine_adapter(options[:adapter])
     @on_session_load_error = options[:on_session_load_error]
     verify_handlers!
   end
@@ -55,7 +59,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   private
 
-  attr_reader :redis, :key, :default_options, :serializer
+  attr_reader :redis, :key, :default_options, :serializer, :adapter
 
   # overrides method defined in rack to actually verify session existence
   # Prevents needless new sessions from being created in scenario where
@@ -86,51 +90,37 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     "#{default_options[:key_prefix]}#{sid}"
   end
 
-  def get_session(env, sid)
-    unless sid && (session = load_session_from_redis(sid))
-      sid = generate_sid
-      session = {}
-    end
+  def generate_session_sid
+    adapter.generate_session_sid || generate_sid
+  end
 
-    [sid, session]
-  rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
-    on_redis_down.call(e, env, sid) if on_redis_down
-    [generate_sid, {}]
+  def get_session(env, sid)
+    session = load_session_from_redis(env, sid) if sid
+    return [sid, session] if sid && session
+    [generate_session_sid, {}]
   end
   alias find_session get_session
 
-  def load_session_from_redis(sid)
-    data = redis.get(prefixed(sid))
-    begin
-      data ? decode(data) : nil
-    rescue => e
-      destroy_session_from_sid(sid, drop: true)
-      on_session_load_error.call(e, sid) if on_session_load_error
-      nil
-    end
-  end
-
-  def decode(data)
-    serializer.load(data)
+  def load_session_from_redis(env, sid)
+    return adapter.load_session_from_redis(prefixed(sid))
+  rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
+    on_redis_down.call(e, env, sid) if on_redis_down
+    nil
+  rescue => e
+    destroy_session_from_sid(sid, drop: true)
+    on_session_load_error.call(e, sid) if on_session_load_error
+    nil
   end
 
   def set_session(env, sid, session_data, options = nil)
     expiry = (options || env.fetch(ENV_SESSION_OPTIONS_KEY))[:expire_after]
-    if expiry
-      redis.setex(prefixed(sid), expiry, encode(session_data))
-    else
-      redis.set(prefixed(sid), encode(session_data))
-    end
+    adapter.write_session_to_redis(prefixed(sid), session_data, expiry)
     return sid
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, sid) if on_redis_down
-    return false
+    false
   end
   alias write_session set_session
-
-  def encode(session_data)
-    serializer.dump(session_data)
-  end
 
   def destroy_session(env, sid, options)
     destroy_session_from_sid(sid, (options || {}).to_hash.merge(env: env))
@@ -147,7 +137,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def destroy_session_from_sid(sid, options = {})
     redis.del(prefixed(sid))
-    (options || {})[:drop] ? nil : generate_sid
+    (options || {})[:drop] ? nil : generate_session_sid
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, options[:env] || {}, sid) if on_redis_down
   end
@@ -187,6 +177,90 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
     def self.needs_migration?(value)
       value.start_with?(MARSHAL_SIGNATURE)
+    end
+  end
+
+  def determine_adapter(adapter)
+    adapter ||= :default
+    case adapter
+    when :default then DefaultAdapter.new(redis, serializer)
+    when :java_spring then
+      JavaSpringAdapter.new(redis, serializer, default_options[:hashkey_prefix])
+    else adapter
+    end
+  end
+
+  # Default adapter, save session in redis as string
+  class DefaultAdapter
+    def initialize(redis, serializer)
+      @redis = redis
+      @serializer = serializer
+    end
+
+    attr_accessor :redis, :serializer
+
+    def generate_session_sid
+    end
+
+    def load_session_from_redis(s_key)
+      data = redis.get(s_key)
+      data ? serializer.load(data) : nil
+    end
+
+    def write_session_to_redis(s_key, session_data, expiry)
+      if expiry
+        redis.setex(s_key, expiry, serializer.dump(session_data))
+      else
+        redis.set(s_key, serializer.dump(session_data))
+      end
+    end
+  end
+
+  # Java Spring adapter, save session in redis as hash
+  class JavaSpringAdapter < DefaultAdapter
+    def initialize(redis, serializer, hashkey_prefix)
+      @redis = redis
+      @serializer = serializer
+      @hashkey_prefix = hashkey_prefix || ''
+    end
+
+    attr_accessor :redis, :serializer, :hashkey_prefix
+
+    def generate_session_sid
+      SecureRandom.uuid
+    end
+
+    def load_session_from_redis(s_key)
+      data = {}
+      redis.hkeys(s_key).each do |key|
+        next unless key.start_with?(hashkey_prefix)
+        value = redis.hget(s_key, key).to_s
+        key = key[hashkey_prefix.length..-1]
+        data[key] = serializer.load(value) unless value.empty?
+      end
+      data
+    end
+
+    def write_session_to_redis(s_key, session_data, expiry)
+      keys = []
+      session_data.each do |key, value|
+        key = "#{hashkey_prefix}#{key}"
+        unless value.nil?
+          redis.hset(s_key, key, serializer.dump(value))
+          keys << key
+        end
+      end
+      clear_old_keys(s_key, keys)
+      redis.expire(s_key, expiry) if expiry
+    end
+
+    private
+
+    def clear_old_keys(s_key, new_keys)
+      redis.hkeys(s_key).each do |key|
+        next unless key.start_with?(hashkey_prefix) && !new_keys.include?(key)
+        redis.hdel(s_key, key)
+      end
     end
   end
 end
