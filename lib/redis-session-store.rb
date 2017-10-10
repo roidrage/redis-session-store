@@ -6,11 +6,11 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   VERSION = '0.9.1'.freeze
   # Rails 3.1 and beyond defines the constant elsewhere
   unless defined?(ENV_SESSION_OPTIONS_KEY)
-    if Rack.release.split('.').first.to_i > 1
-      ENV_SESSION_OPTIONS_KEY = Rack::RACK_SESSION_OPTIONS
-    else
-      ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY
-    end
+    ENV_SESSION_OPTIONS_KEY = if Rack.release.split('.').first.to_i > 1
+                                Rack::RACK_SESSION_OPTIONS
+                              else
+                                Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY
+                              end
   end
 
   # ==== Options
@@ -103,7 +103,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     data = redis.get(prefixed(sid))
     begin
       data ? decode(data) : nil
-    rescue => e
+    rescue StandardError => e
       destroy_session_from_sid(sid, drop: true)
       on_session_load_error.call(e, sid) if on_session_load_error
       nil
