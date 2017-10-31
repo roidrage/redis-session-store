@@ -496,7 +496,7 @@ describe RedisSessionStore do
       end
 
       context 'when callable' do
-        let(:options) { { :"#{h}" => ->(*) { !nil } } }
+        let(:options) { { :"#{h}" => ->(*) { true } } }
 
         it 'does not explode at init' do
           expect { store }.to_not raise_error
