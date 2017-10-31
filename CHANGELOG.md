@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [0.9.2] - 2017-10-31
+### Changed
+- Actionpack to 5.1
+- Travis use jruby 9.1.13.0
+
 ## [0.9.1] - 2016-07-03
 ### Added
 - More specific runtime dependencies
