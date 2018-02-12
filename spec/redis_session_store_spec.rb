@@ -129,6 +129,17 @@ describe RedisSessionStore do
     end
   end
 
+  describe 'when handling race conditions' do
+    let :options do
+      {
+        handle_race_conditions: true
+      }
+    end
+
+    it 'does nothing if session hasn`t been changed'
+    it 'merges new session data with current redis state'
+  end
+
   describe 'rack 1.45 compatibility' do
     # Rack 1.45 (which Rails 3.2.x depends on) uses the return value of
     # set_session to set the cookie value.  See:

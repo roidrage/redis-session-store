@@ -23,6 +23,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
   # * +:on_session_load_error:+ - Called with err and SID on Marshal.load fail
   # * +:serializer:+ - Serializer to use on session data, default is :marshal.
+  # * +:handle_race_conditions:+ Boolean, saving of initial session state
   #
   # ==== Examples
   #
@@ -48,6 +49,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
     @on_session_load_error = options[:on_session_load_error]
+    @handle_race_conditions = options[:handle_race_conditions]
     verify_handlers!
   end
 
@@ -92,12 +94,22 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
       session = {}
     end
 
-    [sid, session]
+    session_data(sid, session)
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, sid) if on_redis_down
     [generate_sid, {}]
   end
   alias find_session get_session
+
+  def session_data(sid, session)
+    if @handle_race_conditions
+      session_with_initial_state = session.clone
+      session_with_initial_state['session_initial_state'] = session
+      [sid, session_with_initial_state]
+    else
+      [sid, session]
+    end
+  end
 
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
@@ -116,10 +128,9 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def set_session(env, sid, session_data, options = nil)
     expiry = (options || env.fetch(ENV_SESSION_OPTIONS_KEY))[:expire_after]
-    if expiry
-      redis.setex(prefixed(sid), expiry, encode(session_data))
-    else
-      redis.set(prefixed(sid), encode(session_data))
+    updated_session_data = encoded_session_data(sid, session_data)
+    if updated_session_data
+      write_session_to_redis sid, expiry, updated_session_data
     end
     return sid
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
@@ -130,6 +141,27 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
 
   def encode(session_data)
     serializer.dump(session_data)
+  end
+
+  def encoded_session_data(sid, session_data)
+    if @handle_race_conditions
+      session_initial = session_data.delete 'session_initial_state'
+      return false if session_initial == session_data
+
+      session_current = load_session_from_redis(sid)
+      if session_current && session_current != session_initial
+        session_data = session_current.deep_merge session_data
+      end
+    end
+    encode session_data
+  end
+
+  def write_session_to_redis(sid, expiry, session_data)
+    if expiry
+      redis.setex prefixed(sid), expiry, session_data
+    else
+      redis.set prefixed(sid), session_data
+    end
   end
 
   def destroy_session(env, sid, options)
