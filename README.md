@@ -99,6 +99,10 @@ My::Application.config.session_store :redis_session_store, {
 
 **Note** The session will *always* be destroyed when it cannot be loaded.
 
+### Other notes
+
+It returns with_indifferent_access if ActiveSupport is defined
+
 ## Rails 2 Compatibility
 
 This gem is currently only compatible with Rails 3+.  If you need
