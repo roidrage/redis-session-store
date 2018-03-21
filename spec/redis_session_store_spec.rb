@@ -141,7 +141,7 @@ describe RedisSessionStore do
 
     context 'when successfully persisting the session' do
       it 'returns the session id' do
-        expect(store.send(:set_session, env, session_id, session_data, options))
+        expect(store.set_session(env, session_id, session_data, options))
           .to eq(session_id)
       end
     end
@@ -152,7 +152,7 @@ describe RedisSessionStore do
       end
 
       it 'returns false' do
-        expect(store.send(:set_session, env, session_id, session_data, options))
+        expect(store.set_session(env, session_id, session_data, options))
           .to eq(false)
       end
     end
@@ -161,7 +161,7 @@ describe RedisSessionStore do
       let(:options) { {} }
 
       it 'sets the session value without expiry' do
-        expect(store.send(:set_session, env, session_id, session_data, options))
+        expect(store.set_session(env, session_id, session_data, options))
           .to eq(session_id)
       end
     end
@@ -173,12 +173,12 @@ describe RedisSessionStore do
       end
 
       it 'returns false' do
-        expect(store.send(:set_session, env, session_id, session_data, options))
+        expect(store.set_session(env, session_id, session_data, options))
           .to eq(false)
       end
 
       it 'calls the on_redis_down handler' do
-        store.send(:set_session, env, session_id, session_data, options)
+        store.set_session(env, session_id, session_data, options)
         expect(@redis_down_handled).to eq(true)
       end
 
@@ -187,7 +187,7 @@ describe RedisSessionStore do
 
         it 'explodes' do
           expect do
-            store.send(:set_session, env, session_id, session_data, options)
+            store.set_session(env, session_id, session_data, options)
           end.to raise_error(Redis::CannotConnectError)
         end
       end
@@ -264,7 +264,7 @@ describe RedisSessionStore do
       allow(store).to receive(:generate_sid).and_return(fake_key)
       expect(redis).to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
 
-      store.send(:get_session, double('env'), fake_key)
+      store.get_session(double('env'), fake_key)
     end
 
     context 'when redis is down' do
@@ -274,12 +274,12 @@ describe RedisSessionStore do
       end
 
       it 'returns an empty session hash' do
-        expect(store.send(:get_session, double('env'), fake_key).last)
+        expect(store.get_session(double('env'), fake_key).last)
           .to eq({})
       end
 
       it 'returns a newly generated sid' do
-        expect(store.send(:get_session, double('env'), fake_key).first)
+        expect(store.get_session(double('env'), fake_key).first)
           .to eq('foop')
       end
 
@@ -288,7 +288,7 @@ describe RedisSessionStore do
 
         it 'explodes' do
           expect do
-            store.send(:get_session, double('env'), fake_key)
+            store.get_session(double('env'), fake_key)
           end.to raise_error(Redis::CannotConnectError)
         end
       end
@@ -342,7 +342,7 @@ describe RedisSessionStore do
         sid = store.send(:generate_sid)
         expect(redis).to receive(:del).with("#{options[:key_prefix]}#{sid}")
 
-        store.send(:destroy_session, {}, sid, nil)
+        store.destroy_session({}, sid, nil)
       end
     end
   end
@@ -363,11 +363,11 @@ describe RedisSessionStore do
     shared_examples_for 'serializer' do
       it 'encodes correctly' do
         expect(redis).to receive(:set).with('12345', expected_encoding)
-        store.send(:set_session, env, session_id, session_data, options)
+        store.set_session(env, session_id, session_data, options)
       end
 
       it 'decodes correctly' do
-        expect(store.send(:get_session, env, session_id))
+        expect(store.get_session(env, session_id))
           .to eq([session_id, session_data])
       end
     end
@@ -519,10 +519,10 @@ describe RedisSessionStore do
       sid = 1234
       allow(store).to receive(:redis).and_return(Redis.new)
       data1 = { 'foo' => 'bar' }
-      store.send(:set_session, env, sid, data1)
+      store.set_session(env, sid, data1)
       data2 = { 'baz' => 'wat' }
-      store.send(:set_session, env, sid, data2)
-      _, session = store.send(:get_session, env, sid)
+      store.set_session(env, sid, data2)
+      _, session = store.get_session(env, sid)
       expect(session).to eq(data2)
     end
 
@@ -531,10 +531,10 @@ describe RedisSessionStore do
       sid = 1234
       allow(store).to receive(:redis).and_return(Redis.new)
       data1 = { 'foo' => 'bar' }
-      store.send(:set_session, env, sid, data1)
+      store.set_session(env, sid, data1)
       data2 = { 'baz' => 'wat' }
-      store.send(:set_session, env, sid, data2)
-      _, session = store.send(:get_session, env, sid)
+      store.set_session(env, sid, data2)
+      _, session = store.get_session(env, sid)
       expect(session).to eq(data2)
     end
   end
