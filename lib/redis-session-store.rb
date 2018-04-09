@@ -121,10 +121,10 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     else
       redis.set(prefixed(sid), encode(session_data))
     end
-    return sid
+    sid
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, sid) if on_redis_down
-    return false
+    false
   end
   alias write_session set_session
 
