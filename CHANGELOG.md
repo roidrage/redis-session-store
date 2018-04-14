@@ -4,6 +4,16 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2018-04-14
+### Changed
+- JRuby to jruby-9.1.15.0
+- Redis to '>= 3', '< 5'
+- Actionpack to '>= 3', '< 6'
+- Rake to 12
+
+### Added
+- with_indifferent_access if defined ActiveSupport
+
 ## [0.9.2] - 2017-10-31
 ### Changed
 - Actionpack to 5.1

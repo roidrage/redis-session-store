@@ -17,3 +17,6 @@ Redis Session Store authors
 - Todd Bealmear
 - Aleksey Dashkevych
 - Olle Jonsson
+- Nicolas Rodriguez
+- Sergey Nebolsin
+- Anton Kolodii
