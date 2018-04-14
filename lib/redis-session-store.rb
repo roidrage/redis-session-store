@@ -13,6 +13,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
                               end
   end
 
+  USE_INDIFFERENT_ACCESS = defined?(ActiveSupport).freeze
   # ==== Options
   # * +:key+ - Same as with the other cookie stores, key name
   # * +:redis+ - A hash with redis-specific options
@@ -86,16 +87,15 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
     "#{default_options[:key_prefix]}#{sid}"
   end
 
-  def get_session(env, sid)
-    unless sid && (session = load_session_from_redis(sid))
-      sid = generate_sid
-      session = {}
-    end
+  def session_default_values
+    [generate_sid, USE_INDIFFERENT_ACCESS ? {}.with_indifferent_access : {}]
+  end
 
-    [sid, session]
+  def get_session(env, sid)
+    sid && (session = load_session_from_redis(sid)) ? [sid, session] : session_default_values
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, sid) if on_redis_down
-    [generate_sid, {}]
+    session_default_values
   end
   alias find_session get_session
 
@@ -111,7 +111,8 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def decode(data)
-    serializer.load(data)
+    session = serializer.load(data)
+    USE_INDIFFERENT_ACCESS ? session.with_indifferent_access : session
   end
 
   def set_session(env, sid, session_data, options = nil)

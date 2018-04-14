@@ -16,6 +16,9 @@ Metrics/BlockLength:
   Exclude:
     - 'spec/**/*.rb'
 
+Metrics/LineLength:
+  Max: 100
+
 Security/MarshalLoad:
   Enabled: false
 
