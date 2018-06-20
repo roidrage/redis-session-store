@@ -27,12 +27,12 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #
   # ==== Examples
   #
-  #     My::Application.config.session_store :redis_session_store, {
+  #     Rails.application.config.session_store :redis_session_store, {
   #       key: 'your_session_key',
   #       redis: {
   #         expire_after: 120.minutes,
   #         key_prefix: 'myapp:session:',
-  #         url: 'redis://host:12345/2'
+  #         url: 'redis://localhost:6379/0'
   #       },
   #       on_redis_down: ->(*a) { logger.error("Redis down! #{a.inspect}") }
   #       serializer: :hybrid # migrate from Marshal to JSON

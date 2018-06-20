@@ -33,12 +33,12 @@ See `lib/redis-session-store.rb` for a list of valid options.
 In your Rails app, throw in an initializer with the following contents:
 
 ``` ruby
-My::Application.config.session_store :redis_session_store, {
+Rails.application.config.session_store :redis_session_store, {
   key: 'your_session_key',
   redis: {
     expire_after: 120.minutes,
     key_prefix: 'myapp:session:',
-    url: 'redis://host:12345/2',
+    url: 'redis://localhost:6379/0',
   }
 }
 ```
@@ -49,7 +49,7 @@ If you want to handle cases where Redis is unavailable, a custom
 callable handler may be provided as `on_redis_down`:
 
 ``` ruby
-My::Application.config.session_store :redis_session_store, {
+Rails.application.config.session_store :redis_session_store, {
   # ... other options ...
   on_redis_down: ->(e, env, sid) { do_something_will_ya!(e) }
   redis: {
@@ -69,7 +69,7 @@ custom serializer:
 * `CustomClass` - You can just pass the constant name of any class that responds to `.load` and `.dump`
 
 ``` ruby
-My::Application.config.session_store :redis_session_store, {
+Rails.application.config.session_store :redis_session_store, {
   # ... other options ...
   serializer: :hybrid
   redis: {
@@ -88,7 +88,7 @@ custom callable handler may be provided as `on_session_load_error` which
 will be given the error and the session ID.
 
 ``` ruby
-My::Application.config.session_store :redis_session_store, {
+Rails.application.config.session_store :redis_session_store, {
   # ... other options ...
   on_session_load_error: ->(e, sid) { do_something_will_ya!(e) }
   redis: {
