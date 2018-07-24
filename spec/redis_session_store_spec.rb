@@ -29,7 +29,8 @@ describe RedisSessionStore do
           port: 16_379,
           db: 2,
           key_prefix: 'myapp:session:',
-          expire_after: 60 * 120
+          expire_after: 60 * 120,
+          store_expire_after: 80 * 120,
         }
       }
     end
@@ -57,6 +58,10 @@ describe RedisSessionStore do
     it 'assigns the :expire_after option to @default_options' do
       expect(default_options[:expire_after]).to eq(60 * 120)
     end
+
+    it 'assigns the :store_expire_after option to @default_options' do
+      expect(default_options[:store_expire_after]).to eq(80 * 120)
+    end
   end
 
   describe 'when initializing with top-level redis options' do
@@ -68,7 +73,8 @@ describe RedisSessionStore do
         port: 26_379,
         db: 4,
         key_prefix: 'appydoo:session:',
-        expire_after: 60 * 60
+        expire_after: 60 * 60,
+        store_expire_after: 80 * 60,
       }
     end
 
@@ -95,6 +101,10 @@ describe RedisSessionStore do
     it 'assigns the :expire_after option to @default_options' do
       expect(default_options[:expire_after]).to eq(60 * 60)
     end
+
+    it 'assigns the :store_expire_after option to @default_options' do
+      expect(default_options[:store_expire_after]).to eq(80 * 60)
+    end
   end
 
   describe 'when initializing with existing redis object' do
@@ -105,7 +115,8 @@ describe RedisSessionStore do
         redis: {
           client: redis_client,
           key_prefix: 'myapp:session:',
-          expire_after: 60 * 30
+          expire_after: 60 * 30,
+          store_expire_after: 80 * 30,
         }
       }
     end
@@ -126,6 +137,10 @@ describe RedisSessionStore do
 
     it 'assigns the :expire_after option to @default_options' do
       expect(default_options[:expire_after]).to eq(60 * 30)
+    end
+
+    it 'assigns the :store_expire_after option to @default_options' do
+      expect(default_options[:store_expire_after]).to eq(80 * 30)
     end
   end
 
@@ -157,7 +172,7 @@ describe RedisSessionStore do
       end
     end
 
-    context 'when no expire_after option is given' do
+    context 'when no expiry options are given' do
       let(:options) { {} }
 
       it 'sets the session value without expiry' do
@@ -264,7 +279,7 @@ describe RedisSessionStore do
       allow(store).to receive(:generate_sid).and_return(fake_key)
       expect(redis).to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
 
-      store.send(:get_session, double('env'), fake_key)
+      store.send(:get_session,  ('env'), fake_key)
     end
 
     context 'when redis is down' do
@@ -514,28 +529,100 @@ describe RedisSessionStore do
   end
 
   describe 'setting the session' do
-    it 'allows changing the session' do
-      env = { 'rack.session.options' => {} }
-      sid = 1234
-      allow(store).to receive(:redis).and_return(Redis.new)
-      data1 = { 'foo' => 'bar' }
-      store.send(:set_session, env, sid, data1)
-      data2 = { 'baz' => 'wat' }
-      store.send(:set_session, env, sid, data2)
-      _, session = store.send(:get_session, env, sid)
-      expect(session).to eq(data2)
+    context 'no expiry specified' do
+      let(:options) { {} }
+
+      it 'allows changing the session' do
+        env = { 'rack.session.options' => options }
+        sid = 1234
+        allow(store).to receive(:redis).and_return(Redis.new)
+        data1 = { 'foo' => 'bar' }
+        store.send(:set_session, env, sid, data1)
+        data2 = { 'baz' => 'wat' }
+        store.send(:set_session, env, sid, data2)
+        _, session = store.send(:get_session, env, sid)
+        expect(session).to eq(data2)
+      end
+
+      it 'sets the session in redis without expiry' do
+        env = { 'rack.session.options' => options }
+        sid = 1234
+        redis = double('redis')
+        allow(store).to receive(:redis).and_return(redis)
+        expect(redis).to receive(:set).with("#{sid}", anything)
+        data = { 'foo' => 'bar' }
+        store.send(:set_session, env, sid, data)
+      end
     end
 
-    it 'allows changing the session when the session has an expiry' do
-      env = { 'rack.session.options' => { expire_after: 60 } }
-      sid = 1234
-      allow(store).to receive(:redis).and_return(Redis.new)
-      data1 = { 'foo' => 'bar' }
-      store.send(:set_session, env, sid, data1)
-      data2 = { 'baz' => 'wat' }
-      store.send(:set_session, env, sid, data2)
-      _, session = store.send(:get_session, env, sid)
-      expect(session).to eq(data2)
+    context 'when expire_after is specified' do
+      let :options do
+        {
+          expire_after: 60
+        }
+      end
+
+      it 'allows changing the session' do
+        env = { 'rack.session.options' => options }
+        sid = 1234
+        allow(store).to receive(:redis).and_return(Redis.new)
+        data1 = { 'foo' => 'bar' }
+        store.send(:set_session, env, sid, data1)
+        data2 = { 'baz' => 'wat' }
+        store.send(:set_session, env, sid, data2)
+        _, session = store.send(:get_session, env, sid)
+        expect(session).to eq(data2)
+      end
+
+      it 'sets the session in redis with expiry' do
+        env = { 'rack.session.options' => options }
+        sid = 1234
+        redis = double('redis')
+        expect(redis).to receive(:setex).with("#{sid}", 60, anything)
+        allow(store).to receive(:redis).and_return(redis)
+        data = { 'foo' => 'bar' }
+        store.send(:set_session, env, sid, data)
+      end
+    end
+
+    context 'when store_expire_after is specified' do
+      let :options do
+        {
+            store_expire_after: 80
+        }
+      end
+
+      it 'allows changing the session' do
+        env = { 'rack.session.options' => options }
+        sid = 1234
+        allow(store).to receive(:redis).and_return(Redis.new)
+        data1 = { 'foo' => 'bar' }
+        store.send(:set_session, env, sid, data1)
+        data2 = { 'baz' => 'wat' }
+        store.send(:set_session, env, sid, data2)
+        _, session = store.send(:get_session, env, sid)
+        expect(session).to eq(data2)
+      end
+
+      it 'sets the session in redis with expiry' do
+        env = { 'rack.session.options' => options }
+        sid = 1234
+        redis = double('redis')
+        expect(redis).to receive(:setex).with("#{sid}", 80, anything)
+        allow(store).to receive(:redis).and_return(redis)
+        data = { 'foo' => 'bar' }
+        store.send(:set_session, env, sid, data)
+      end
+
+      it 'uses the store_expire_after if both expire_after and store_expire_after are specified' do
+        env = { 'rack.session.options' => {store_expire_after: 80, expire_after: 60}}
+        sid = 1234
+        redis = double('redis')
+        expect(redis).to receive(:setex).with("#{sid}", 80, anything)
+        allow(store).to receive(:redis).and_return(redis)
+        data = { 'foo' => 'bar' }
+        store.send(:set_session, env, sid, data)
+      end
     end
   end
 end

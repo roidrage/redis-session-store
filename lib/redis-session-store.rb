@@ -20,6 +20,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   #   * +:url+ - Redis url, default is redis://localhost:6379/0
   #   * +:key_prefix+ - Prefix for keys used in Redis, e.g. +myapp:+
   #   * +:expire_after+ - A number in seconds for session timeout
+  #   * +:store_expire_after+ - A number in seconds for stored session timeout. Takes precedence over expire_after and does not effect session cookie expiry.
   #   * +:client+ - Connect to Redis with given object rather than create one
   # * +:on_redis_down:+ - Called with err, env, and SID on Errno::ECONNREFUSED
   # * +:on_session_load_error:+ - Called with err and SID on Marshal.load fail
@@ -116,7 +117,8 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def set_session(env, sid, session_data, options = nil)
-    expiry = (options || env.fetch(ENV_SESSION_OPTIONS_KEY))[:expire_after]
+    options = options || env.fetch(ENV_SESSION_OPTIONS_KEY)
+    expiry = options[:store_expire_after] || options[:expire_after]
     if expiry
       redis.setex(prefixed(sid), expiry, encode(session_data))
     else
