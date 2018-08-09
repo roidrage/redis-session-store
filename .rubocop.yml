@@ -1,5 +1,3 @@
-inherit_from: .rubocop_todo.yml
-
 AllCops:
   DisplayCopNames: true
   Exclude:
@@ -18,6 +16,9 @@ Metrics/BlockLength:
 
 Metrics/LineLength:
   Max: 100
+
+Metrics/ClassLength:
+  Max: 120
 
 Security/MarshalLoad:
   Enabled: false
