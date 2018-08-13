@@ -20,3 +20,4 @@ Redis Session Store authors
 - Nicolas Rodriguez
 - Sergey Nebolsin
 - Anton Kolodii
+- Peter Karman
