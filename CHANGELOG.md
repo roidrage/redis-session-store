@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+- Remove the `has_rdoc` parameter from the `.gemspec` file as it has been deprecated.
+
 ## [0.11.0] - 2018-08-13
 ### Changed
 - JRuby to jruby-9.2.0.0

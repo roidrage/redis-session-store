@@ -7,6 +7,7 @@ Redis Session Store authors
 - Edwin Cruz
 - Gonçalo Silva
 - Ian C. Anderson
+- Jesse Doyle
 - Jorge Pardiñas
 - Justin McNally
 - Mathias Meyer
