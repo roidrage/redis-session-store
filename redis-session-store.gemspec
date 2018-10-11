@@ -8,7 +8,6 @@ Gem::Specification.new do |gem|
   gem.homepage = 'https://github.com/roidrage/redis-session-store'
   gem.license = 'MIT'
 
-  gem.has_rdoc = true
   gem.extra_rdoc_files = %w(LICENSE AUTHORS.md CONTRIBUTING.md)
 
   gem.files = `git ls-files -z`.split("\x0")
