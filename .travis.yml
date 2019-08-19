@@ -1,14 +1,14 @@
 language: ruby
-sudo: false
 cache: bundler
 rvm:
-- 2.3.7
-- 2.4.4
-- 2.5.1
-- jruby-9.2.0.0
+- 2.3.8
+- 2.4.6
+- 2.5.5
+- 2.6.3
+- jruby-9.2.8.0
 matrix:
   allow_failures:
-  - rvm: jruby-9.2.0.0
+  - rvm: jruby-9.2.8.0
 notifications:
   email: false
 deploy:
@@ -19,4 +19,4 @@ deploy:
   on:
     tags: true
     repo: roidrage/redis-session-store
-    rvm: 2.3.1
+    rvm: 2.3.8

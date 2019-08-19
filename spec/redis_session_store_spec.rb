@@ -519,7 +519,7 @@ describe RedisSessionStore do
       end
 
       context 'when callable' do
-        let(:options) { { :"#{h}" => ->(*) { true } } }
+        let(:options) { { "#{h}": ->(*) { true } } }
 
         it 'does not explode at init' do
           expect { store }.to_not raise_error
@@ -527,7 +527,7 @@ describe RedisSessionStore do
       end
 
       context 'when not callable' do
-        let(:options) { { :"#{h}" => 'herpderp' } }
+        let(:options) { { "#{h}": 'herpderp' } }
 
         it 'explodes at init' do
           expect { store }.to raise_error(ArgumentError)
