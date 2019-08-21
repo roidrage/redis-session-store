@@ -4,7 +4,10 @@
 
 ## [Unreleased]
 
+## [0.11.1] - 2019-08-22
+### Changed
 - Remove the `has_rdoc` parameter from the `.gemspec` file as it has been deprecated.
+- Actionpack to '>= 3', remove upper dependency
 
 ## [0.11.0] - 2018-08-13
 ### Changed
@@ -226,7 +229,8 @@
 ### Added
 - first working version
 
-[Unreleased]: https://github.com/roidrage/redis-session-store/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/roidrage/redis-session-store/compare/v0.11.1...HEAD
+[0.11.1]: https://github.com/roidrage/redis-session-store/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/roidrage/redis-session-store/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/roidrage/redis-session-store/compare/v0.9.2...v0.10.0
 [0.9.2]: https://github.com/roidrage/redis-session-store/compare/v0.9.1...v0.9.2
