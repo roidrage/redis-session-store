@@ -1,13 +1,15 @@
 language: ruby
 cache: bundler
 rvm:
-- 2.3.8
-- 2.4.6
-- 2.5.5
-- 2.6.3
+- 2.3
+- 2.4
+- 2.5
+- 2.6
+- ruby-head
 - jruby-9.2.8.0
 matrix:
   allow_failures:
+  - rvm: ruby-head
   - rvm: jruby-9.2.8.0
 notifications:
   email: false
