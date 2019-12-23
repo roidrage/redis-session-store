@@ -4,17 +4,17 @@ AllCops:
     - 'Rakefile'
     - 'vendor/**/*'
 
-FileName:
+Naming/FileName:
   Enabled: false
 
-DoubleNegation:
+Style/DoubleNegation:
   Enabled: false
 
 Metrics/BlockLength:
   Exclude:
     - 'spec/**/*.rb'
 
-Metrics/LineLength:
+Layout/LineLength:
   Max: 100
 
 Metrics/ClassLength:
