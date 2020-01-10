@@ -93,7 +93,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
     begin
-      data ? decode(data) : nil
+      data ? decode(data) : (USE_INDIFFERENT_ACCESS ? {}.with_indifferent_access : {})
     rescue StandardError => e
       destroy_session_from_sid(sid, drop: true)
       on_session_load_error.call(e, sid) if on_session_load_error
