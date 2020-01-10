@@ -63,16 +63,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   # user HAS session id, but it already expired, or is invalid for some
   # other reason, and session was accessed only for reading.
   def session_exists?(env)
-    value = current_session_id(env)
-
-    !!(
-      value && !value.empty? &&
-      redis.exists(prefixed(value))
-    )
-  rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
-    on_redis_down.call(e, env, value) if on_redis_down
-
-    true
+    current_session_id(env).present?
   end
 
   def verify_handlers!
@@ -116,6 +107,10 @@ class RedisSessionStore < ActionDispatch::Session::AbstractStore
   end
 
   def set_session(env, sid, session_data, options = nil)
+    if session_data.blank?
+      redis.del(prefixed(sid)) if redis.exists(prefixed(sid))
+      return sid
+    end
     expiry = get_expiry(env, options)
     if expiry
       redis.setex(prefixed(sid), expiry, encode(session_data))
