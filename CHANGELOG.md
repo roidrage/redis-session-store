@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+- Silence deprecation warning when using with redis gem v4.2+
+
 ## [0.11.1] - 2019-08-22
 ### Changed
 - Remove the `has_rdoc` parameter from the `.gemspec` file as it has been deprecated.
