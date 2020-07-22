@@ -22,3 +22,4 @@ Redis Session Store authors
 - Sergey Nebolsin
 - Anton Kolodii
 - Peter Karman
+- Zach Margolis
