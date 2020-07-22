@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.11.2] - 2020-07-22
+### Changed
 - Silence deprecation warning when using with redis gem v4.2+
 
 ## [0.11.1] - 2019-08-22
