@@ -21,6 +21,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'fakeredis', '~> 0.8'
   gem.add_development_dependency 'rake', '~> 13'
   gem.add_development_dependency 'rspec', '~> 3'
-  gem.add_development_dependency 'rubocop', '~> 0.88'
+  gem.add_development_dependency 'rubocop', '~> 0.81'
   gem.add_development_dependency 'simplecov', '~> 0.18'
 end
