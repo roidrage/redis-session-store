@@ -6,11 +6,13 @@ rvm:
 - 2.5
 - 2.6
 - ruby-head
-- jruby-9.2.16.0
 matrix:
+  include:
+    - rvm: jruby-9.2.18.0
+      name: "Latest JRuby"
   allow_failures:
-  - rvm: ruby-head
-  - rvm: jruby-9.2.16.0
+    - rvm: ruby-head
+    - name: "Latest JRuby"
 notifications:
   email: false
 deploy:
