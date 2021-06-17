@@ -8,7 +8,7 @@ rvm:
 - ruby-head
 matrix:
   include:
-    - rvm: jruby-9.2.18.0
+    - rvm: jruby-9.2.19.0
       name: "Latest JRuby"
   allow_failures:
     - rvm: ruby-head
