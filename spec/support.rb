@@ -7,11 +7,24 @@ unless defined?(Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY)
     end
   end
 end
+unless defined?(Rack::Session::SessionId)
+  module Rack
+    module Session
+      class SessionId
+        attr_reader :public_id
 
-unless defined?(ActionDispatch::Session::AbstractStore)
+        def initialize(public_id)
+          @public_id
+        end
+      end
+    end
+  end
+end
+
+unless defined?(ActionDispatch::Session::AbstractSecureStore)
   module ActionDispatch
     module Session
-      class AbstractStore
+      class AbstractSecureStore
         ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
         DEFAULT_OPTIONS = {
           key: '_session_id',
@@ -33,7 +46,7 @@ unless defined?(ActionDispatch::Session::AbstractStore)
         private
 
         def generate_sid
-          rand(999..9999).to_s(16)
+          Rack::Session::SessionId.new(rand(999..9999).to_s(16))
         end
       end
     end
