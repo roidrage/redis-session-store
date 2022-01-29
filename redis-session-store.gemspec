@@ -15,7 +15,7 @@ Gem::Specification.new do |gem|
   gem.version = File.read('lib/redis-session-store.rb')
                     .match(/^  VERSION = '(.*)'/)[1]
 
-  gem.add_runtime_dependency 'actionpack', '>= 3', '< 7'
+  gem.add_runtime_dependency 'actionpack', '>= 3', '< 8'
   gem.add_runtime_dependency 'redis', '>= 3', '< 5'
 
   gem.add_development_dependency 'fakeredis', '~> 0.8'
