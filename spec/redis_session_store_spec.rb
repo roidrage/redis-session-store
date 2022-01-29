@@ -281,6 +281,13 @@ describe RedisSessionStore do
 
     let(:fake_key) { 'thisisarediskey' }
 
+    describe 'generate_sid' do
+      it 'generates a secure ID' do
+        sid = store.send(:generate_sid)
+        expect(sid).to be_a(Rack::Session::SessionId)
+      end
+    end
+
     it 'retrieves the prefixed key from redis' do
       redis = double('redis')
       allow(store).to receive(:redis).and_return(redis)

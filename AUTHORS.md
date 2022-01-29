@@ -23,3 +23,4 @@ Redis Session Store authors
 - Anton Kolodii
 - Peter Karman
 - Zach Margolis
+- Zachary Belzer
