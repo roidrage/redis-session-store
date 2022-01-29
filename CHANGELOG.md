@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+## [0.11.4] - 2022-01-29
+### Fixed
+- Use AbstractSecureStore for security fix
+
+### Changed
+- Support actionpack 7.x
+- Move from TravisCI to Github Actions
+- Drop support for ruby 2.3, 2.4
+
 ## [0.11.3] - 2020-07-23
 ### Fixed
 - https://github.com/roidrage/redis-session-store/issues/121
