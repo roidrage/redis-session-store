@@ -1,18 +1,17 @@
 require 'json'
 
 describe RedisSessionStore do
+  subject(:store) { described_class.new(nil, options) }
+
   let :random_string do
     "#{rand}#{rand}#{rand}"
+  end
+  let :default_options do
+    store.instance_variable_get(:@default_options)
   end
 
   let :options do
     {}
-  end
-
-  subject(:store) { RedisSessionStore.new(nil, options) }
-
-  let :default_options do
-    store.instance_variable_get(:@default_options)
   end
 
   it 'assigns a :namespace to @default_options' do
@@ -35,7 +34,7 @@ describe RedisSessionStore do
     end
 
     it 'creates a redis instance' do
-      expect(store.instance_variable_get(:@redis)).to_not be_nil
+      expect(store.instance_variable_get(:@redis)).not_to be_nil
     end
 
     it 'assigns the :host option to @default_options' do
@@ -96,7 +95,7 @@ describe RedisSessionStore do
     end
 
     it 'creates a redis instance' do
-      expect(store.instance_variable_get(:@redis)).to_not be_nil
+      expect(store.instance_variable_get(:@redis)).not_to be_nil
     end
 
     it 'assigns the :host option to @default_options' do
@@ -228,6 +227,7 @@ describe RedisSessionStore do
     context 'when session id is not provided' do
       context 'when session id is nil' do
         let(:session_id) { nil }
+
         it 'returns false' do
           expect(store.send(:session_exists?, :env)).to eq(false)
         end
@@ -235,6 +235,7 @@ describe RedisSessionStore do
 
       context 'when session id is empty string' do
         let(:session_id) { '' }
+
         it 'returns false' do
           allow(store).to receive(:current_session_id).with(:env).and_return('')
           expect(store.send(:session_exists?, :env)).to eq(false)
@@ -404,14 +405,15 @@ describe RedisSessionStore do
 
     context 'marshal' do
       let(:options) { { serializer: :marshal } }
-      it_should_behave_like 'serializer'
+
+      it_behaves_like 'serializer'
     end
 
     context 'json' do
       let(:options) { { serializer: :json } }
       let(:encoded_data) { '{"some":"data"}' }
 
-      it_should_behave_like 'serializer'
+      it_behaves_like 'serializer'
     end
 
     context 'hybrid' do
@@ -419,13 +421,13 @@ describe RedisSessionStore do
       let(:expected_encoding) { '{"some":"data"}' }
 
       context 'marshal encoded data' do
-        it_should_behave_like 'serializer'
+        it_behaves_like 'serializer'
       end
 
       context 'json encoded data' do
         let(:encoded_data) { '{"some":"data"}' }
 
-        it_should_behave_like 'serializer'
+        it_behaves_like 'serializer'
       end
     end
 
@@ -445,7 +447,7 @@ describe RedisSessionStore do
       let(:options) { { serializer: custom_serializer } }
       let(:expected_encoding) { 'somedata' }
 
-      it_should_behave_like 'serializer'
+      it_behaves_like 'serializer'
     end
   end
 
@@ -521,7 +523,7 @@ describe RedisSessionStore do
     %w(on_redis_down on_session_load_error).each do |h|
       context 'when nil' do
         it 'does not explode at init' do
-          expect { store }.to_not raise_error
+          expect { store }.not_to raise_error
         end
       end
 
@@ -529,7 +531,7 @@ describe RedisSessionStore do
         let(:options) { { "#{h}": ->(*) { true } } }
 
         it 'does not explode at init' do
-          expect { store }.to_not raise_error
+          expect { store }.not_to raise_error
         end
       end
 

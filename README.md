@@ -1,6 +1,5 @@
 # Redis Session Store
 
-[![Build Status](https://travis-ci.org/roidrage/redis-session-store.svg?branch=master)](https://travis-ci.org/roidrage/redis-session-store)
 [![Code Climate](https://codeclimate.com/github/roidrage/redis-session-store.svg)](https://codeclimate.com/github/roidrage/redis-session-store)
 [![Gem Version](https://badge.fury.io/rb/redis-session-store.svg)](http://badge.fury.io/rb/redis-session-store)
 

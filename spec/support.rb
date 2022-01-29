@@ -13,7 +13,7 @@ unless defined?(Rack::Session::SessionId)
       class SessionId
         attr_reader :public_id
 
-        def initialize(public_id)
+        def initialize(_public_id)
           @public_id
         end
       end
