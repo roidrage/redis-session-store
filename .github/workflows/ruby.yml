@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [2.5, 2.6, 2.7, head, debug, jruby-9.2.20.1, jruby-head]
+        ruby: [2.5, 2.6, 2.7, head, jruby-9.2.20.1, jruby-head]
 
     steps:
     - uses: actions/checkout@v2
@@ -28,5 +28,7 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      continue-on-error: true
     - name: Run tests
       run: bundle exec rake
+      continue-on-error: true
