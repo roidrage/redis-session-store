@@ -24,3 +24,4 @@ Redis Session Store authors
 - Peter Karman
 - Zach Margolis
 - Zachary Belzer
+- Yutaka Kamei
