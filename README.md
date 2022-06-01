@@ -32,7 +32,7 @@ See `lib/redis-session-store.rb` for a list of valid options.
 In your Rails app, throw in an initializer with the following contents:
 
 ``` ruby
-Rails.application.config.session_store :redis_session_store, {
+Rails.application.config.session_store :redis_session_store,
   key: 'your_session_key',
   redis: {
     expire_after: 120.minutes,  # cookie expiration
@@ -40,7 +40,6 @@ Rails.application.config.session_store :redis_session_store, {
     key_prefix: 'myapp:session:',
     url: 'redis://localhost:6379/0',
   }
-}
 ```
 
 ### Redis unavailability handling
@@ -49,13 +48,12 @@ If you want to handle cases where Redis is unavailable, a custom
 callable handler may be provided as `on_redis_down`:
 
 ``` ruby
-Rails.application.config.session_store :redis_session_store, {
+Rails.application.config.session_store :redis_session_store,
   # ... other options ...
   on_redis_down: ->(e, env, sid) { do_something_will_ya!(e) }
   redis: {
     # ... redis options ...
   }
-}
 ```
 
 ### Serializer
@@ -69,13 +67,12 @@ custom serializer:
 * `CustomClass` - You can just pass the constant name of any class that responds to `.load` and `.dump`
 
 ``` ruby
-Rails.application.config.session_store :redis_session_store, {
+Rails.application.config.session_store :redis_session_store,
   # ... other options ...
   serializer: :hybrid
   redis: {
     # ... redis options ...
   }
-}
 ```
 
 **Note**: Rails 4 is required for using the `:json` and `:hybrid` serializers
@@ -88,20 +85,19 @@ custom callable handler may be provided as `on_session_load_error` which
 will be given the error and the session ID.
 
 ``` ruby
-Rails.application.config.session_store :redis_session_store, {
+Rails.application.config.session_store :redis_session_store,
   # ... other options ...
   on_session_load_error: ->(e, sid) { do_something_will_ya!(e) }
   redis: {
     # ... redis options ...
   }
-}
 ```
 
 **Note** The session will *always* be destroyed when it cannot be loaded.
 
 ### Other notes
 
-It returns with_indifferent_access if ActiveSupport is defined
+It returns with_indifferent_access if ActiveSupport is defined.
 
 ## Rails 2 Compatibility
 
