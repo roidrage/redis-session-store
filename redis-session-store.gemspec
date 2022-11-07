@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
                     .match(/^  VERSION = '(.*)'/)[1]
 
   gem.add_runtime_dependency 'actionpack', '>= 6', '< 8'
-  gem.add_runtime_dependency 'redis', '>= 3', '< 5'
+  gem.add_runtime_dependency 'redis', '>= 3', '< 6'
 
   gem.add_development_dependency 'fakeredis', '~> 0.8'
   gem.add_development_dependency 'rake', '~> 13'
