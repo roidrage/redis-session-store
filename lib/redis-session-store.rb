@@ -40,11 +40,10 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
   def initialize(app, options = {})
     super
 
-    redis_options = options[:redis] || {}
-
     @default_options[:namespace] = 'rack:session'
-    @default_options.merge!(redis_options)
-    @redis = redis_options[:client] || Redis.new(redis_options)
+    @default_options.merge!(options[:redis] || {})
+    init_options = options[:redis]&.reject { |k, _v| %i[expire_after key_prefix].include?(k) } || {}
+    @redis = init_options[:client] || Redis.new(init_options)
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
     @on_session_load_error = options[:on_session_load_error]
