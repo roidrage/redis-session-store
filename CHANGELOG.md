@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+# [0.11.5] - 2022-11-27
+
+### Changed
+
+- Support redis 5
+- Actionpack more than or equal to 6
+
 ## [0.11.4] - 2022-01-29
 ### Fixed
 - Use AbstractSecureStore for security fix
