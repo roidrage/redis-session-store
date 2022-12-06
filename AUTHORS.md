@@ -16,6 +16,7 @@ Redis Session Store authors
 - Olek Poplavsky
 - Tim Lossen
 - Todd Bealmear
+- Vasily Fedoseyev
 - Aleksey Dashkevych
 - Olle Jonsson
 - Nicolas Rodriguez

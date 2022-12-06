@@ -252,21 +252,54 @@ describe RedisSessionStore do
 
       context 'when session id does not exist in redis' do
         it 'returns false' do
-          expect(redis).to receive(:exists).with('foo').and_return(false)
+          expect(redis).to receive(:exists?).with('foo').and_return(false)
           expect(store.send(:session_exists?, :env)).to eq(false)
         end
       end
 
       context 'when session id exists in redis' do
         it 'returns true' do
-          expect(redis).to receive(:exists).with('foo').and_return(true)
+          expect(redis).to receive(:exists?).with('foo').and_return(true)
           expect(store.send(:session_exists?, :env)).to eq(true)
         end
       end
 
       context 'when redis is down' do
-        it 'returns true (fallback to old behavior)' do
+        before do
           allow(store).to receive(:redis).and_raise(Redis::CannotConnectError)
+        end
+
+        it 'returns true (fallback to old behavior)' do
+          expect(store.send(:session_exists?, :env)).to eq(true)
+        end
+
+        context 'when :on_redis_down re-raises' do
+          before { store.on_redis_down = ->(e, *) { raise e } }
+
+          it 'explodes' do
+            expect do
+              store.send(:session_exists?, :env)
+            end.to raise_error(Redis::CannotConnectError)
+          end
+        end
+      end
+
+      context 'when redis does suport exists?' do
+        it 'calls it' do
+          expect(redis).to receive(:exists?).and_return(false)
+          expect(redis).not_to receive(:exists)
+          store.send(:session_exists?, :env)
+        end
+      end
+
+      context 'when redis does not support #exists?' do
+        before do
+          allow(redis).to receive(:respond_to?).with(:exists?).and_return(false)
+          allow(redis).to receive(:exists?).and_raise('shouhld not be called')
+        end
+
+        it 'uses old method exist' do
+          expect(redis).to receive(:exists).with('foo').and_return(true)
           expect(store.send(:session_exists?, :env)).to eq(true)
         end
       end
@@ -343,6 +376,15 @@ describe RedisSessionStore do
           .with("#{options[:key_prefix]}#{fake_key}")
 
         store.send(:destroy, env)
+      end
+
+      context 'when no cookie hash in request' do
+        let(:env) { {} }
+
+        it 'does nothing' do
+          allow(store).to receive(:redis).and_return(double('redis'))
+          store.send(:destroy, env)
+        end
       end
 
       context 'when redis is down' do
@@ -546,9 +588,10 @@ describe RedisSessionStore do
   end
 
   describe 'setting the session' do
+    let(:env) { { 'rack.session.options' => {} } }
+    let(:sid) { 1234 }
+
     it 'allows changing the session' do
-      env = { 'rack.session.options' => {} }
-      sid = 1234
       allow(store).to receive(:redis).and_return(Redis.new)
       data1 = { 'foo' => 'bar' }
       store.send(:set_session, env, sid, data1)
@@ -560,7 +603,6 @@ describe RedisSessionStore do
 
     it 'allows changing the session when the session has an expiry' do
       env = { 'rack.session.options' => { expire_after: 60 } }
-      sid = 1234
       allow(store).to receive(:redis).and_return(Redis.new)
       data1 = { 'foo' => 'bar' }
       store.send(:set_session, env, sid, data1)
@@ -568,6 +610,34 @@ describe RedisSessionStore do
       store.send(:set_session, env, sid, data2)
       _, session = store.send(:get_session, env, sid)
       expect(session).to eq(data2)
+    end
+
+    context 'when redis is down' do
+      let(:redis_exception_type) { Redis::CannotConnectError }
+
+      before { allow(store).to receive(:redis).and_raise(redis_exception_type) }
+
+      it 'returns false' do
+        expect(store.send(:set_session, env, sid, { 'foo' => 'bar' })).to eq false
+      end
+
+      it 'calls on_redis_down' do
+        store.on_redis_down = double('on_redis_down')
+        expect(store.on_redis_down).to receive(:call).with(
+          be_kind_of(redis_exception_type), env, sid
+        )
+        store.send(:set_session, env, sid, { 'foo' => 'bar' })
+      end
+
+      context 'when :on_redis_down re-raises' do
+        before { store.on_redis_down = ->(e, *) { raise e } }
+
+        it 'explodes' do
+          expect do
+            store.send(:set_session, env, sid, { 'foo' => 'bar' })
+          end.to raise_error(Redis::CannotConnectError)
+        end
+      end
     end
   end
 end

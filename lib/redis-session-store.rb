@@ -4,6 +4,7 @@ require 'redis'
 # the MemCacheStore code, simply dropping in Redis instead.
 class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
   VERSION = '0.11.5'.freeze
+  # :nocov:
   # Rails 3.1 and beyond defines the constant elsewhere
   unless defined?(ENV_SESSION_OPTIONS_KEY)
     ENV_SESSION_OPTIONS_KEY = if Rack.release.split('.').first.to_i > 1
@@ -12,6 +13,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
                                 Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY
                               end
   end
+  # :nocov:
 
   USE_INDIFFERENT_ACCESS = defined?(ActiveSupport).freeze
   # ==== Options
