@@ -24,7 +24,10 @@ Layout/LineLength:
   Max: 100
 
 Metrics/ClassLength:
-  Max: 120
+  Max: 140
+
+RSpec/MultipleExpectations:
+  Max: 3
 
 Security/MarshalLoad:
   Enabled: false

@@ -11,10 +11,32 @@ unless defined?(Rack::Session::SessionId)
   module Rack
     module Session
       class SessionId
+        ID_VERSION = 2
+
         attr_reader :public_id
 
-        def initialize(_public_id)
-          @public_id
+        def initialize(public_id)
+          @public_id = public_id
+        end
+
+        alias to_s public_id
+
+        def empty?
+          false
+        end
+
+        def inspect
+          public_id.inspect
+        end
+
+        def private_id
+          "#{ID_VERSION}::#{hash_sid(public_id)}"
+        end
+
+        private
+
+        def hash_sid(value)
+          "test_hash_from:#{value}"
         end
       end
     end

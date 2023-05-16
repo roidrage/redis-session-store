@@ -65,12 +65,18 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
 
     !!(
       value && !value.empty? &&
-      key_exists?(value)
+      key_exists_with_fallback?(value)
     )
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, value) if on_redis_down
 
     true
+  end
+
+  def key_exists_with_fallback?(value)
+    return false if private_session_id?(value.public_id)
+
+    key_exists?(value.private_id) || key_exists?(value.public_id)
   end
 
   def key_exists?(value)
@@ -81,6 +87,10 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
       # older method, will return an integer starting in redis gem v4.3
       redis.exists(prefixed(value))
     end
+  end
+
+  def private_session_id?(value)
+    value.match?(/\A\d+::/)
   end
 
   def verify_handlers!
@@ -100,12 +110,20 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
   end
 
   def get_session(env, sid)
-    sid && (session = load_session_from_redis(sid)) ? [sid, session] : session_default_values
+    sid && (session = load_session_with_fallback(sid)) ? [sid, session] : session_default_values
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
     on_redis_down.call(e, env, sid) if on_redis_down
     session_default_values
   end
   alias find_session get_session
+
+  def load_session_with_fallback(sid)
+    return nil if private_session_id?(sid.public_id)
+
+    load_session_from_redis(
+      key_exists?(sid.private_id) ? sid.private_id : sid.public_id
+    )
+  end
 
   def load_session_from_redis(sid)
     data = redis.get(prefixed(sid))
@@ -126,9 +144,9 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
   def set_session(env, sid, session_data, options = nil)
     expiry = get_expiry(env, options)
     if expiry
-      redis.setex(prefixed(sid), expiry, encode(session_data))
+      redis.setex(prefixed(sid.private_id), expiry, encode(session_data))
     else
-      redis.set(prefixed(sid), encode(session_data))
+      redis.set(prefixed(sid.private_id), encode(session_data))
     end
     sid
   rescue Errno::ECONNREFUSED, Redis::CannotConnectError => e
@@ -147,14 +165,17 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
   end
 
   def destroy_session(env, sid, options)
-    destroy_session_from_sid(sid, (options || {}).to_hash.merge(env: env))
+    destroy_session_from_sid(sid.public_id, (options || {}).to_hash.merge(env: env, drop: true))
+    destroy_session_from_sid(sid.private_id, (options || {}).to_hash.merge(env: env))
   end
   alias delete_session destroy_session
 
   def destroy(env)
     if env['rack.request.cookie_hash'] &&
        (sid = env['rack.request.cookie_hash'][key])
-      destroy_session_from_sid(sid, drop: true, env: env)
+      sid = Rack::Session::SessionId.new(sid)
+      destroy_session_from_sid(sid.private_id, drop: true, env: env)
+      destroy_session_from_sid(sid.public_id, drop: true, env: env)
     end
     false
   end

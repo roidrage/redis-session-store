@@ -2,6 +2,7 @@ Redis Session Store authors
 ===========================
 
 - Ben Marini
+- Bill Ruddock
 - Dan Buch
 - Donald Plummer
 - Edwin Cruz
