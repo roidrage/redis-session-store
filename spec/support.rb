@@ -1,12 +1,3 @@
-unless defined?(Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY)
-  module Rack
-    module Session
-      module Abstract
-        ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
-      end
-    end
-  end
-end
 unless defined?(Rack::Session::SessionId)
   module Rack
     module Session
