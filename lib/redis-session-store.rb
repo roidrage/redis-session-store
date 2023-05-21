@@ -120,9 +120,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
   def load_session_with_fallback(sid)
     return nil if private_session_id?(sid.public_id)
 
-    load_session_from_redis(
-      key_exists?(sid.private_id) ? sid.private_id : sid.public_id
-    )
+    load_session_from_redis(sid.private_id) || load_session_from_redis(sid.public_id)
   end
 
   def load_session_from_redis(sid)
