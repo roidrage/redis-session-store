@@ -1,6 +1,7 @@
 Redis Session Store authors
 ===========================
 
+- Atsushi Tatsuma
 - Ben Marini
 - Bill Ruddock
 - Dan Buch
