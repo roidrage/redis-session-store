@@ -42,7 +42,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
 
     @default_options[:namespace] = 'rack:session'
     @default_options.merge!(options[:redis] || {})
-    init_options = options[:redis]&.reject { |k, _v| %i[expire_after key_prefix].include?(k) } || {}
+    init_options = options[:redis]&.reject { |k, _v| %i[expire_after ttl key_prefix].include?(k) } || {}
     @redis = init_options[:client] || Redis.new(init_options)
     @on_redis_down = options[:on_redis_down]
     @serializer = determine_serializer(options[:serializer])
