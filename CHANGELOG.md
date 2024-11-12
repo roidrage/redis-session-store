@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+# [0.11.6] - 2024-11-12
+- Fix secure session using private_id
+- Support Rails 8
+
 # [0.11.5] - 2022-11-27
 
 ### Changed
