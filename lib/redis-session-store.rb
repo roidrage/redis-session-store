@@ -4,14 +4,6 @@ require 'redis'
 # the MemCacheStore code, simply dropping in Redis instead.
 class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
   VERSION = '0.11.5'.freeze
-  # Rails 3.1 and beyond defines the constant elsewhere
-  unless defined?(ENV_SESSION_OPTIONS_KEY)
-    ENV_SESSION_OPTIONS_KEY = if Rack.release.split('.').first.to_i > 1
-                                Rack::RACK_SESSION_OPTIONS
-                              else
-                                Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY
-                              end
-  end
 
   USE_INDIFFERENT_ACCESS = defined?(ActiveSupport).freeze
   # ==== Options
@@ -156,7 +148,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
   alias write_session set_session
 
   def get_expiry(env, options)
-    session_storage_options = options || env.fetch(ENV_SESSION_OPTIONS_KEY, {})
+    session_storage_options = options || env.fetch(Rack::RACK_SESSION_OPTIONS, {})
     session_storage_options[:ttl] || session_storage_options[:expire_after]
   end
 
