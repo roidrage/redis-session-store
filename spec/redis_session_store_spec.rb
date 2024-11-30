@@ -318,25 +318,26 @@ describe RedisSessionStore do
 
     context 'when redis is up' do
       let(:redis) { double('redis') }
-      let(:private_exists) { true }
+      let(:private_value) { Marshal.dump('foo') }
 
       before do
         allow(store).to receive(:redis).and_return(redis)
-        allow(redis).to receive(:exists)
+        allow(redis).to receive(:get)
           .with("#{options[:key_prefix]}#{session_id.private_id}")
-          .and_return(private_exists)
+          .and_return(private_value)
       end
 
       context 'when session private id exists in redis' do
         it 'retrieves the prefixed private id from redis' do
           expect(redis).to receive(:get).with("#{options[:key_prefix]}#{session_id.private_id}")
+          expect(redis).not_to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
 
           store.send(:get_session, double('env'), session_id)
         end
       end
 
       context 'when session private id not found in redis' do
-        let(:private_exists) { false }
+        let(:private_value) { nil }
 
         it 'retrieves the prefixed public id from redis' do
           expect(redis).to receive(:get).with("#{options[:key_prefix]}#{fake_key}")
