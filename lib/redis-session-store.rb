@@ -1,4 +1,5 @@
 require 'redis'
+require 'active_support/core_ext/hash/indifferent_access'
 
 # Redis session storage for Rails, and for Rails only. Derived from
 # the MemCacheStore code, simply dropping in Redis instead.
@@ -13,7 +14,6 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
                               end
   end
 
-  USE_INDIFFERENT_ACCESS = defined?(ActiveSupport).freeze
   # ==== Options
   # * +:key+ - Same as with the other cookie stores, key name
   # * +:redis+ - A hash with redis-specific options
@@ -106,7 +106,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
   end
 
   def session_default_values
-    [generate_sid, USE_INDIFFERENT_ACCESS ? {}.with_indifferent_access : {}]
+    [generate_sid, {}.with_indifferent_access]
   end
 
   def get_session(env, sid)
@@ -138,7 +138,7 @@ class RedisSessionStore < ActionDispatch::Session::AbstractSecureStore
 
   def decode(data)
     session = serializer.load(data)
-    USE_INDIFFERENT_ACCESS ? session.with_indifferent_access : session
+    session.with_indifferent_access
   end
 
   def set_session(env, sid, session_data, options = nil)
